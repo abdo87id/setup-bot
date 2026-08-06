@@ -15,7 +15,7 @@ const client = new Client({
 const TOKEN = process.env.TOKEN;
 
 // روم الترحيب
-const WELCOME_CHANNEL = "1520267388526788712";
+const WELCOME_CHANNEL = "1532781166468272311";
 
 client.once("clientReady", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);

@@ -112,11 +112,17 @@ client.on("channelCreate", async (channel) => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  if (message.content.includes("@everyone")) {
+  if (message.mentions.everyone) {
 
-    await message.channel.send({
-      files: ["./standard.gif"]
-    });
+    try {
+
+      await message.channel.send({
+        files: ["./standard.gif"]
+      });
+
+    } catch (error) {
+      console.log("❌ خطأ في إرسال GIF:", error);
+    }
 
   }
 });

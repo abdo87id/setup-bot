@@ -7,7 +7,9 @@ const {
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+GatewayIntentBits.MessageContent
   ]
 });
 
@@ -69,4 +71,55 @@ ${member.guild.memberCount}
 
 });
 
+// ===============================
+// نظام التكت
+// ===============================
+
+client.on("channelCreate", async (channel) => {
+
+  if (!channel.guild) return;
+  if (!channel.isTextBased()) return;
+
+  setTimeout(async () => {
+
+    const name = channel.name.toLowerCase();
+
+    if (
+      !name.includes("ticket") &&
+      !name.includes("تكت") &&
+      !name.includes("support")
+    ) {
+      return;
+    }
+
+    await channel.send(`
+🎫 **مرحبا بك في التكت**
+
+📋 اكتب طلبك أو استفسارك بالتفصيل، وانتظر أحد أعضاء الإدارة للرد عليك.
+
+⚠️ الرجاء عدم إرسال رسائل متكررة أو عمل منشن للإدارة.
+
+❤️ نتمنى لك تجربة موفقة في **𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**
+`);
+
+  }, 3000);
+});
+
+
+// ===============================
+// نظام @everyone
+// ===============================
+
+client.on("messageCreate", async (message) => {
+
+  if (message.author.bot) return;
+
+  if (message.content.includes("@everyone")) {
+
+    await message.channel.send(
+      "━━━━━━━━━━━━━━━━━━━━━━━━"
+    );
+
+  }
+});
 client.login(TOKEN);

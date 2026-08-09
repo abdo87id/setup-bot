@@ -112,19 +112,21 @@ client.on("channelCreate", async (channel) => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  if (message.mentions.everyone) {
+  if (!message.mentions.everyone) return;
 
-    try {
+  try {
+    await message.channel.send({
+      files: [
+        {
+          attachment: "./standard.gif",
+          name: "standard.gif"
+        }
+      ]
+    });
 
-      await message.channel.send({
-        files: ["./standard.gif"]
-      });
-
-    } catch (error) {
-      console.log("❌ خطأ في إرسال GIF:", error);
-    }
-
+  } catch (error) {
+    console.log("❌ خطأ في إرسال GIF:");
+    console.log(error);
   }
 });
-
 client.login(TOKEN);

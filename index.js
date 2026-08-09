@@ -80,19 +80,15 @@ client.on("channelCreate", async (channel) => {
   if (!channel.guild) return;
   if (!channel.isTextBased()) return;
 
+  // التحقق من أن اسم الروم يبدأ بإيموجي التكت
+  if (!channel.name.startsWith("🎫")) return;
+
+  // ننتظر 3 ثواني حتى يكمل Wick إنشاء التكت
   setTimeout(async () => {
 
-    const name = channel.name.toLowerCase();
+    try {
 
-    if (
-      !name.includes("ticket") &&
-      !name.includes("تكت") &&
-      !name.includes("support")
-    ) {
-      return;
-    }
-
-    await channel.send(`
+      await channel.send(`
 🎫 **مرحبا بك في التكت**
 
 📋 اكتب طلبك أو استفسارك بالتفصيل، وانتظر أحد أعضاء الإدارة للرد عليك.
@@ -102,9 +98,12 @@ client.on("channelCreate", async (channel) => {
 ❤️ نتمنى لك تجربة موفقة في **𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**
 `);
 
+    } catch (error) {
+      console.log("❌ لم أستطع إرسال رسالة التكت:", error);
+    }
+
   }, 3000);
 });
-
 
 // ===============================
 // نظام @everyone

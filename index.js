@@ -700,7 +700,6 @@ client.on("messageCreate", async (message) => {
     try {
         if (!message.guild || message.author.bot) return;
 
-        // الأمر
         if (message.content.trim().toLowerCase() !== "+come") return;
 
         const channel = message.channel;
@@ -728,16 +727,16 @@ client.on("messageCreate", async (message) => {
         const memberOverwrites = channel.permissionOverwrites.cache.filter(
             overwrite =>
                 overwrite.type === 1 &&
-                overwrite.allow.has("ViewChannel")
+                overwrite.allow.has("ViewChannel") &&
+                overwrite.id !== client.user.id
         );
 
         if (!memberOverwrites.size) {
             return message.reply(
-                "❌ ما قدرتش نحدد صاحب التكت من صلاحيات القناة."
+                "❌ ما قدرتش نحدد صاحب التكت."
             );
         }
 
-        // نجيب أول عضو عنده صلاحية مشاهدة التكت
         const ownerOverwrite = memberOverwrites.first();
 
         const owner = await message.guild.members
@@ -751,7 +750,7 @@ client.on("messageCreate", async (message) => {
         }
 
         // ==========================================
-        // 📢 منشن داخل التكت
+        // 📢 الرسالة داخل التكت
         // ==========================================
 
         await channel.send({
@@ -761,24 +760,18 @@ client.on("messageCreate", async (message) => {
         });
 
         // ==========================================
-        // 📩 رسالة خاصة
+        // 📩 الرسالة في الخاص مباشرة
         // ==========================================
 
         await owner.send({
             content:
                 `🎫 **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-                `الدعم محتاج ردك في التكت الخاص بك.\n` +
+                `الدعم محتاج ردك في التكت.\n` +
                 `📌 التكت: **${channel.name}**\n\n` +
                 `يرجى الرجوع للتكت والرد على الدعم.`
         }).catch(() => {});
 
-        // ==========================================
-        // ✅ تأكيد للموظف
-        // ==========================================
-
-        await message.reply(
-            `✅ تم تنبيه ${owner} داخل التكت وإرسال رسالة له في الخاص.`
-        );
+        // ❌ لا توجد رسالة تأكيد للموظف
 
     } catch (error) {
         console.error("❌ Ticket Come Error:", error);

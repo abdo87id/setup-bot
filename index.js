@@ -952,4 +952,68 @@ client.on("messageCreate", async (message) => {
 });
 
 console.log("🎫 Ticket Commands Loaded");
+// ==========================================
+// 🎫 TICKET - +close
+// ==========================================
+
+client.on("messageCreate", async (message) => {
+    try {
+        if (!message.guild || message.author.bot) return;
+
+        // الأمر
+        if (message.content.trim().toLowerCase() !== "+close") return;
+
+        const channel = message.channel;
+
+        // ==========================================
+        // 🔎 التأكد إن القناة تكت
+        // ==========================================
+
+        if (!channel.name.startsWith(TICKET_PREFIX)) {
+            return message.reply("❌ الأمر هذا يشتغل داخل التكتات فقط.");
+        }
+
+        // ==========================================
+        // 👮 التأكد من صلاحية الموظف
+        // ==========================================
+
+        if (!message.member.permissions.has("ManageChannels")) {
+            return message.reply("❌ ما عندكش صلاحية تسكر التكت.");
+        }
+
+        // ==========================================
+        // 🔒 قفل التكت
+        // ==========================================
+
+        await message.reply("🔒 جاري إغلاق التكت...");
+
+        // منع الأعضاء العاديين من الكتابة
+        await channel.permissionOverwrites.edit(
+            message.guild.roles.everyone,
+            {
+                SendMessages: false
+            }
+        ).catch(() => {});
+
+        // ==========================================
+        // ⏳ انتظار ثم حذف التكت
+        // ==========================================
+
+        await channel.send(
+            `🔒 **تم إغلاق التكت بواسطة ${message.author}.**\n` +
+            `🗑️ سيتم حذف التكت بعد **5 ثواني**.`
+        );
+
+        setTimeout(async () => {
+            await channel.delete(
+                "Ticket closed"
+            ).catch(() => {});
+        }, 5000);
+
+    } catch (error) {
+        console.error("❌ Ticket Close Error:", error);
+    }
+});
+
+console.log("🔒 Ticket Close Loaded");
 client.login(TOKEN);

@@ -776,6 +776,112 @@ client.on("messageCreate", async (message) => {
 
         // ==========================================
         // 📩 الخاص مباشرة
+// ==========================================
+// 🎫 TICKET - +come
+// ==========================================
+
+const TICKET_PREFIX = "🎫・";
+
+client.on("messageCreate", async (message) => {
+    try {
+        if (!message.guild || message.author.bot) return;
+
+        if (message.content.trim().toLowerCase() !== "+come") return;
+
+        const channel = message.channel;
+
+        // ==========================================
+        // 🔎 التأكد إن القناة تكت
+        // ==========================================
+
+        if (!channel.name.startsWith(TICKET_PREFIX)) {
+            return message.reply("❌ الأمر هذا يشتغل داخل التكتات فقط.");
+        }
+
+        // ==========================================
+        // 👮 التأكد من صلاحية الموظف
+        // ==========================================
+
+        if (!message.member.permissions.has("ManageChannels")) {
+            return message.reply("❌ ما عندكش صلاحية تستعمل الأمر هذا.");
+        }
+
+        // ==========================================
+        // 🔎 البحث عن رسالة Wick
+        // ==========================================
+
+        const messages = await channel.messages.fetch({
+            limit: 50
+        });
+
+        let ownerId = null;
+
+        for (const msg of messages.values()) {
+
+            // نشوف الـEmbeds
+            for (const embed of msg.embeds) {
+
+                if (!embed.fields) continue;
+
+                for (const field of embed.fields) {
+
+                    // نبحث عن خانة مالك التذكرة
+                    if (
+                        field.name &&
+                        field.name.includes("مالك التذكرة")
+                    ) {
+
+                        const match = field.value.match(
+                            /<@!?(\d{17,20})>/
+                        );
+
+                        if (match) {
+                            ownerId = match[1];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (ownerId) break;
+        }
+
+        // ==========================================
+        // ❌ ما لقيناش صاحب التكت
+        // ==========================================
+
+        if (!ownerId) {
+            return message.reply(
+                "❌ ما قدرتش نحدد صاحب التكت من بيانات التكت."
+            );
+        }
+
+        // ==========================================
+        // 👤 جلب صاحب التكت
+        // ==========================================
+
+        const owner = await message.guild.members
+            .fetch(ownerId)
+            .catch(() => null);
+
+        if (!owner) {
+            return message.reply(
+                "❌ صاحب التكت مش موجود في السيرفر."
+            );
+        }
+
+        // ==========================================
+        // 📢 الرسالة داخل التكت
+        // ==========================================
+
+        await channel.send({
+            content:
+                `📢 **${owner}**\n` +
+                `الدعم محتاج ردك في التكت، يرجى الرجوع للتكت.`
+        });
+
+        // ==========================================
+        // 📩 رسالة الخاص مباشرة
         // ==========================================
 
         await owner.send({
@@ -785,6 +891,8 @@ client.on("messageCreate", async (message) => {
                 `📌 التكت: **${channel.name}**\n\n` +
                 `يرجى الرجوع للتكت والرد على الدعم.`
         }).catch(() => {});
+
+        // ❌ لا توجد رسالة تأكيد
 
     } catch (error) {
         console.error("❌ Ticket Come Error:", error);

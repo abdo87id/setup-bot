@@ -724,28 +724,43 @@ client.on("messageCreate", async (message) => {
         // 👤 البحث عن صاحب التكت
         // ==========================================
 
-        const memberOverwrites = channel.permissionOverwrites.cache.filter(
-            overwrite =>
-                overwrite.type === 1 &&
-                overwrite.allow.has("ViewChannel") &&
-                overwrite.id !== client.user.id
-        );
+        let owner = null;
 
-        if (!memberOverwrites.size) {
-            return message.reply(
-                "❌ ما قدرتش نحدد صاحب التكت."
-            );
+        for (const overwrite of channel.permissionOverwrites.cache.values()) {
+
+            // لازم يكون Permission خاص بعضو
+            if (overwrite.type !== 1) continue;
+
+            // لازم عنده ViewChannel
+            if (!overwrite.allow.has("ViewChannel")) continue;
+
+            const member = await message.guild.members
+                .fetch(overwrite.id)
+                .catch(() => null);
+
+            if (!member) continue;
+
+            // ❌ تجاهل البوتات
+            if (member.user.bot) continue;
+
+            // ❌ تجاهل الإدارة
+            if (hasAdminRole(member)) continue;
+
+            // ❌ تجاهل الدعم
+            if (hasSupportRole(member)) continue;
+
+            // هذا المفروض يكون صاحب التكت
+            owner = member;
+            break;
         }
 
-        const ownerOverwrite = memberOverwrites.first();
-
-        const owner = await message.guild.members
-            .fetch(ownerOverwrite.id)
-            .catch(() => null);
+        // ==========================================
+        // ❌ ما لقيناش صاحب التكت
+        // ==========================================
 
         if (!owner) {
             return message.reply(
-                "❌ صاحب التكت مش موجود في السيرفر."
+                "❌ ما قدرتش نحدد صاحب التكت."
             );
         }
 
@@ -760,7 +775,7 @@ client.on("messageCreate", async (message) => {
         });
 
         // ==========================================
-        // 📩 الرسالة في الخاص مباشرة
+        // 📩 الخاص مباشرة
         // ==========================================
 
         await owner.send({
@@ -771,12 +786,12 @@ client.on("messageCreate", async (message) => {
                 `يرجى الرجوع للتكت والرد على الدعم.`
         }).catch(() => {});
 
-        // ❌ لا توجد رسالة تأكيد للموظف
-
     } catch (error) {
         console.error("❌ Ticket Come Error:", error);
     }
 });
+
+console.log("🎫 Ticket Come Loaded");
 // ==========================================
 // 🎫 TICKET COMMANDS
 // +claim / +add / +remove / +rename

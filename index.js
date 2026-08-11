@@ -695,9 +695,91 @@ function isTicketChannel(channel) {
 }
 
 // البحث عن صاحب التكت من صلاحيات الروم
+// ==========================================
+// 🔎 البحث عن صاحب التكت
+// Wick Embed + Permission Overwrites
+// ==========================================
+
 async function findTicketOwner(channel) {
 
   try {
+
+    // ==========================================
+    // 🔎 الطريقة الأولى: البحث في رسائل Wick
+    // ==========================================
+
+    const messages = await channel.messages.fetch({
+      limit: 50
+    }).catch(() => null);
+
+    if (messages) {
+
+      for (const msg of messages.values()) {
+
+        for (const embed of msg.embeds) {
+
+          if (!embed.fields) continue;
+
+          for (const field of embed.fields) {
+
+            const name = String(
+              field.name || ""
+            ).toLowerCase();
+
+            const value = String(
+              field.value || ""
+            );
+
+            if (
+              name.includes("مالك التذكرة") ||
+              name.includes("مالك التكت") ||
+              name.includes("ticket owner") ||
+              name.includes("ticket creator") ||
+              name.includes("owner")
+            ) {
+
+              const match =
+                value.match(/<@!?(\d{17,20})>/);
+
+              if (match) {
+
+                const member =
+                  await channel.guild.members
+                    .fetch(match[1])
+                    .catch(() => null);
+
+                if (member && !member.user.bot) {
+                  return member;
+                }
+              }
+            }
+
+            const idMatch =
+              value.match(/\b\d{17,20}\b/);
+
+            if (
+              name.includes("مالك") &&
+              idMatch
+            ) {
+
+              const member =
+                await channel.guild.members
+                  .fetch(idMatch[0])
+                  .catch(() => null);
+
+                if (member && !member.user.bot) {
+                  return member;
+                }
+            }
+
+          }
+        }
+      }
+    }
+
+    // ==========================================
+    // 🔎 الطريقة الثانية: Permission Overwrites
+    // ==========================================
 
     for (
       const overwrite of
@@ -725,12 +807,16 @@ async function findTicketOwner(channel) {
     }
 
   } catch (error) {
-    console.log("❌ Ticket Owner Error:", error);
+
+    console.log(
+      "❌ Ticket Owner Error:",
+      error
+    );
+
   }
 
   return null;
 }
-
 // ==========================================
 // 🎫 أوامر التكت
 // +come

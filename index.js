@@ -1,7 +1,8 @@
 const {
   Client,
   GatewayIntentBits,
-  EmbedBuilder
+  EmbedBuilder,
+  PermissionsBitField
 } = require("discord.js");
 
 const client = new Client({
@@ -15,62 +16,56 @@ const client = new Client({
 });
 
 // ==========================================
-// 🔑 توكن البوت
+// 🔑 TOKEN
 // ==========================================
 
 const TOKEN = process.env.TOKEN;
 
 // ==========================================
-// 👋 روم الترحيب
+// 📌 IDs
 // ==========================================
 
 const WELCOME_CHANNEL = "1532781166468272311";
-
-// ==========================================
-// 🎫 إعدادات التكت
-// ==========================================
-
-const TICKET_PREFIX = "🎫・";
-
-// ==========================================
-// 🛡️ الرتب
-// ==========================================
 
 const ADMIN_ROLE_ID = "1532780829158146048";
 const SUPPORT_ROLE_ID = "1532780834468139161";
 const PROTECTED_ROLE_ID = "1532780825534402771";
 
+// شكل أسماء التكتات
+const TICKET_PREFIX = "🎫・";
+
 // ==========================================
-// 🚀 تشغيل البوت
+// 🚀 READY
 // ==========================================
 
 client.once("clientReady", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
+  console.log("🤖 Atlantis Bot is online.");
 });
 
 // ==========================================
-// 👋 نظام الترحيب
+// 👋 الترحيب
 // ==========================================
 
 client.on("guildMemberAdd", async (member) => {
+  try {
+    const channel = member.guild.channels.cache.get(WELCOME_CHANNEL);
 
-  const channel = member.guild.channels.cache.get(WELCOME_CHANNEL);
+    if (!channel) return;
 
-  if (!channel) return;
-
-  const embed = new EmbedBuilder()
-    .setColor("#2F6BFF")
-    .setAuthor({
-      name: "𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖",
-      iconURL: member.guild.iconURL({ dynamic: true })
-    })
-    .setThumbnail(
-      member.user.displayAvatarURL({
-        dynamic: true,
-        size: 1024
+    const embed = new EmbedBuilder()
+      .setColor("#2F6BFF")
+      .setAuthor({
+        name: "𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖",
+        iconURL: member.guild.iconURL({ dynamic: true })
       })
-    )
-    .setDescription(`
+      .setThumbnail(
+        member.user.displayAvatarURL({
+          dynamic: true,
+          size: 1024
+        })
+      )
+      .setDescription(`
 # مرحباً بك في **𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**
 
 منور/ه السيرفر ${member} <a:1076562476444950669:1520857459839991951>
@@ -97,34 +92,32 @@ ${member.id}
 **أنت العضو رقم**
 ${member.guild.memberCount}
 `)
-    .setImage(
-      member.guild.iconURL({
-        dynamic: true,
-        size: 1024
-      })
-    )
-    .setTimestamp();
+      .setImage(member.guild.iconURL({ dynamic: true, size: 1024 }))
+      .setTimestamp();
 
-  await channel.send({
-    embeds: [embed]
-  }).catch(() => {});
+    await channel.send({
+      embeds: [embed]
+    });
+
+  } catch (error) {
+    console.log("❌ Welcome Error:", error);
+  }
 });
 
 // ==========================================
-// 🎫 رسالة التكت عند إنشاء الروم
+// 🎫 رسالة إنشاء التكت
 // ==========================================
 
 client.on("channelCreate", async (channel) => {
+  try {
+    if (!channel.guild) return;
+    if (!channel.isTextBased()) return;
 
-  if (!channel.guild) return;
-  if (!channel.isTextBased()) return;
-  if (!channel.name.startsWith("🎫")) return;
+    if (!channel.name.startsWith("🎫")) return;
 
-  setTimeout(async () => {
-
-    try {
-
-      await channel.send(`
+    setTimeout(async () => {
+      try {
+        await channel.send(`
 🎫 **مرحبا بك في التكت**
 
 📋 اكتب طلبك أو استفسارك بالتفصيل، وانتظر أحد أعضاء الإدارة للرد عليك.
@@ -133,31 +126,21 @@ client.on("channelCreate", async (channel) => {
 
 ❤️ نتمنى لك تجربة موفقة في **𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**
 `);
+      } catch (error) {
+        console.log("❌ Ticket Welcome Error:", error);
+      }
+    }, 3000);
 
-    } catch (error) {
-
-      console.log(
-        "❌ لم أستطع إرسال رسالة التكت:",
-        error
-      );
-
-    }
-
-  }, 3000);
+  } catch (error) {
+    console.log("❌ Channel Create Error:", error);
+  }
 });
 
-console.log("👋 Welcome System Loaded");
-console.log("🎫 Ticket Welcome System Loaded");
 // ==========================================
-// 👮‍♂️ الجزء 2 — أوامر الإدارة
-// ==========================================
-
-// ==========================================
-// 🔐 التحقق من رتبة الإدارة
+// 👮 التحقق من الرتب
 // ==========================================
 
 function hasAdminRole(member) {
-
   if (!member || !member.guild) return false;
 
   const role = member.guild.roles.cache.get(ADMIN_ROLE_ID);
@@ -167,12 +150,7 @@ function hasAdminRole(member) {
   return member.roles.highest.position >= role.position;
 }
 
-// ==========================================
-// 🎫 التحقق من رتبة الدعم
-// ==========================================
-
 function hasSupportRole(member) {
-
   if (!member || !member.guild) return false;
 
   const role = member.guild.roles.cache.get(SUPPORT_ROLE_ID);
@@ -184,32 +162,28 @@ function hasSupportRole(member) {
 
 // ==========================================
 // 🛡️ الرتبة المحمية
-// الرتبة نفسها وكل الرتب الأعلى منها
 // ==========================================
 
 function isProtected(member) {
-
   if (!member || !member.guild) return false;
 
-  const protectedRole =
-    member.guild.roles.cache.get(PROTECTED_ROLE_ID);
+  const role = member.guild.roles.cache.get(PROTECTED_ROLE_ID);
 
-  if (!protectedRole) return false;
+  if (!role) return false;
 
-  return member.roles.highest.position >= protectedRole.position;
+  return member.roles.highest.position >= role.position;
 }
 
 // ==========================================
 // ⏱️ تحويل الوقت
-// 10m / 1h / 2d / 1w
 // ==========================================
 
 function parseDuration(input) {
-
   if (!input) return null;
 
-  const match =
-    input.toLowerCase().match(/^(\d+)(s|m|h|d|w)$/);
+  const match = input
+    .toLowerCase()
+    .match(/^(\d+)(s|m|h|d|w)$/);
 
   if (!match) return null;
 
@@ -228,453 +202,79 @@ function parseDuration(input) {
 }
 
 // ==========================================
-// 📋 أوامر الإدارة
+// 📢 @everyone GIF
 // ==========================================
 
 client.on("messageCreate", async (message) => {
+  try {
+    if (!message.guild || message.author.bot) return;
 
-  if (message.author.bot) return;
-  if (!message.guild) return;
+    if (!message.mentions.everyone) return;
 
-  const args =
-    message.content.trim().split(/\s+/);
-
-  const command =
-    args[0].toLowerCase();
-
-  // ==========================================
-  // 🔒 قفل
-  // ==========================================
-
-  if (command === "قفل") {
-
-    if (!hasAdminRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية.");
-    }
-
-    try {
-
-      await message.channel.permissionOverwrites.edit(
-        message.guild.roles.everyone,
+    await message.channel.send({
+      files: [
         {
-          SendMessages: false
+          attachment: "./standard.gif",
+          name: "standard.gif"
         }
-      );
+      ]
+    });
 
-      return message.channel.send(
-        "🔒 تم قفل الشات."
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نقفل الشات."
-      );
-    }
+  } catch (error) {
+    console.log("❌ Everyone GIF Error:", error);
   }
-
-  // ==========================================
-  // 🔓 فتح
-  // ==========================================
-
-  if (command === "فتح") {
-
-    if (!hasAdminRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية.");
-    }
-
-    try {
-
-      await message.channel.permissionOverwrites.edit(
-        message.guild.roles.everyone,
-        {
-          SendMessages: null
-        }
-      );
-
-      return message.channel.send(
-        "🔓 تم فتح الشات."
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نفتح الشات."
-      );
-    }
-  }
-
-  // ==========================================
-  // 🧹 مسح / تنظيف / حذف
-  // ==========================================
-
-  if (
-    command === "مسح" ||
-    command === "تنظيف" ||
-    command === "حذف"
-  ) {
-
-    if (!hasAdminRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية.");
-    }
-
-    let amount = parseInt(args[1]);
-
-    if (isNaN(amount)) amount = 100;
-
-    if (amount < 1) amount = 1;
-    if (amount > 100) amount = 100;
-
-    try {
-
-      const messages =
-        await message.channel.bulkDelete(
-          amount,
-          true
-        );
-
-      const msg =
-        await message.channel.send(
-          `🧹 تم حذف **${messages.size}** رسالة.`
-        );
-
-      setTimeout(() => {
-        msg.delete().catch(() => {});
-      }, 3000);
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نمسح الرسائل."
-      );
-    }
-  }
-
-  // ==========================================
-  // 🔊 سحب / تعال
-  // ==========================================
-
-  if (
-    command === "سحب" ||
-    command === "تعال"
-  ) {
-
-    if (!hasSupportRole(message.member)) {
-      return message.reply(
-        "❌ ما عندكش صلاحية للسحب."
-      );
-    }
-
-    const voiceChannel =
-      message.member.voice.channel;
-
-    if (!voiceChannel) {
-      return message.reply(
-        "❌ لازم تكون داخل روم صوتي أولًا."
-      );
-    }
-
-    const target =
-      message.mentions.members.first();
-
-    if (!target) {
-      return message.reply(
-        "❌ منشن الشخص اللي تبي تسحبه."
-      );
-    }
-
-    if (
-      !message.guild.members.me.permissions
-        .has("MoveMembers")
-    ) {
-      return message.reply(
-        "❌ البوت ما عندهش صلاحية Move Members."
-      );
-    }
-
-    try {
-
-      await target.voice.setChannel(
-        voiceChannel
-      );
-
-      return message.reply(
-        `🔊 تم سحب ${target} إلى **${voiceChannel.name}**.`
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نسحب الشخص."
-      );
-    }
-  }
-
-  // ==========================================
-  // 🔇 اسكت / كتم
-  // ==========================================
-
-  if (
-    command === "اسكت" ||
-    command === "كتم"
-  ) {
-
-    if (!hasAdminRole(message.member)) {
-      return message.reply(
-        "❌ ما عندكش صلاحية للكتم."
-      );
-    }
-
-    const target =
-      message.mentions.members.first();
-
-    if (!target) {
-      return message.reply(
-        "❌ منشن الشخص اللي تبي تسكته."
-      );
-    }
-
-    const duration =
-      parseDuration(args[2]);
-
-    if (args[2] && !duration) {
-      return message.reply(
-        "❌ الوقت غلط. مثال: `10m` أو `1h` أو `2d` أو `1w`."
-      );
-    }
-
-    if (
-      duration &&
-      duration > 28 * 24 * 60 * 60 * 1000
-    ) {
-      return message.reply(
-        "❌ أقصى مدة للكتم المؤقت 28 يوم."
-      );
-    }
-
-    try {
-
-      await target.timeout(
-        duration,
-        `تم الكتم بواسطة ${message.author.tag}`
-      );
-
-      if (duration) {
-
-        return message.reply(
-          `🔇 تم كتم ${target} لمدة **${args[2]}**.`
-        );
-      }
-
-      return message.reply(
-        `🔇 تم كتم ${target} حتى يتم فك الكتم.`
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نكتم الشخص. تأكد من صلاحية Moderate Members."
-      );
-    }
-  }
-
-  // ==========================================
-  // 🔊 ادوي / فك
-  // ==========================================
-
-  if (
-    command === "ادوي" ||
-    command === "فك"
-  ) {
-
-    if (!hasAdminRole(message.member)) {
-      return message.reply(
-        "❌ ما عندكش صلاحية."
-      );
-    }
-
-    const target =
-      message.mentions.members.first();
-
-    if (!target) {
-      return message.reply(
-        "❌ منشن الشخص اللي تبي تفك عليه الكتم."
-      );
-    }
-
-    try {
-
-      await target.timeout(null);
-
-      return message.reply(
-        `🔊 تم فك الكتم عن ${target}.`
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نفك الكتم."
-      );
-    }
-  }
-
-  // ==========================================
-  // 🔨 حظر
-  // ==========================================
-
-  if (
-    command === "تف" ||
-    command === "حضر" ||
-    command === "لحاس" ||
-    command === "صبي" ||
-    command === "حظر"
-  ) {
-
-    if (!hasAdminRole(message.member)) {
-      return message.reply(
-        "❌ ما عندكش صلاحية للحظر."
-      );
-    }
-
-    const target =
-      message.mentions.members.first();
-
-    if (!target) {
-      return message.reply(
-        "❌ منشن الشخص اللي تبي تحظره."
-      );
-    }
-
-    try {
-
-      await target.ban({
-        reason:
-          `تم الحظر بواسطة ${message.author.tag}`
-      });
-
-      return message.channel.send(
-        `🔨 تم حظر **${target.user.tag}** من السيرفر.`
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      return message.reply(
-        "❌ ما قدرتش نحظر الشخص. تأكد من صلاحية Ban Members."
-      );
-    }
-  }
-
 });
 
-console.log("👮‍♂️ Admin Commands Loaded");
 // ==========================================
-// 🛡️ الجزء 3 — AUTO MOD والحماية
-// ==========================================
-
-// ==========================================
-// 📊 تتبع المنشنات
+// 🛡️ AUTO MOD
 // ==========================================
 
 const mentionTracker = new Map();
 
-// ==========================================
-// 🔗 روابط Discord
-// ==========================================
-
 const discordInviteRegex =
   /(https?:\/\/)?(www\.)?(discord\.gg|discord\.com\/invite|discordapp\.com\/invite)\/[a-zA-Z0-9-]+/gi;
-
-// ==========================================
-// 🔗 جميع الروابط
-// ==========================================
 
 const anyLinkRegex =
   /(https?:\/\/|www\.)[^\s]+/gi;
 
-// ==========================================
-// 🔁 تتبع الرسائل المتكررة
-// ==========================================
-
-const repeatedMessages = new Map();
-
-// ==========================================
-// 📢 AUTO MOD
-// ==========================================
-
 client.on("messageCreate", async (message) => {
-
   try {
-
     if (!message.guild || message.author.bot) return;
 
     const member = message.member;
 
-    // الرتب المحمية مستثناة من الحماية
+    if (!member) return;
+
+    // الإدارة العليا والحماية مستثناة
     if (isProtected(member)) return;
 
     // ==========================================
-    // 📢 @everyone / @here
-    // ==========================================
-
-    if (message.mentions.everyone) {
-
-      await message.channel.send({
-        files: [
-          {
-            attachment: "./standard.gif",
-            name: "standard.gif"
-          }
-        ]
-      }).catch(() => {});
-
-      return;
-    }
-
-    // ==========================================
-    // 🔗 منع روابط Discord
+    // 🔗 Discord Invites
     // ==========================================
 
     if (discordInviteRegex.test(message.content)) {
 
       await message.delete().catch(() => {});
 
-      // Timeout لمدة ساعة
       if (member.moderatable) {
-
         await member.timeout(
           60 * 60 * 1000,
           "إرسال رابط سيرفر Discord ممنوع"
         ).catch(() => {});
-
       }
 
-      // تنبيه في الخاص
       await member.send({
         content:
           `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
           `تم منعك من إرسال روابط سيرفرات Discord.\n` +
-          `تم إعطاؤك **Timeout لمدة ساعة** بسبب إرسال رابط Discord.`
+          `تم إعطاؤك **Timeout لمدة ساعة**.`
       }).catch(() => {});
 
       return;
     }
 
     // ==========================================
-    // 🔗 منع جميع الروابط
+    // 🔗 الروابط
     // ==========================================
 
     if (anyLinkRegex.test(message.content)) {
@@ -692,11 +292,9 @@ client.on("messageCreate", async (message) => {
 
     // ==========================================
     // 📢 Anti Mention Spam
-    // 3 رسائل فيها منشن خلال 4 ثواني
     // ==========================================
 
-    const mentionCount =
-      message.mentions.users.size;
+    const mentionCount = message.mentions.users.size;
 
     if (mentionCount > 0) {
 
@@ -707,43 +305,33 @@ client.on("messageCreate", async (message) => {
         mentionTracker.set(userId, []);
       }
 
-      const timestamps =
-        mentionTracker.get(userId);
+      const timestamps = mentionTracker.get(userId);
 
-      const recent =
-        timestamps.filter(
-          time => now - time <= 4000
-        );
+      const recent = timestamps.filter(
+        time => now - time <= 4000
+      );
 
       recent.push(now);
 
-      mentionTracker.set(
-        userId,
-        recent
-      );
+      mentionTracker.set(userId, recent);
 
-      // 3 رسائل منشن خلال 4 ثواني
       if (recent.length >= 3) {
 
         mentionTracker.delete(userId);
 
         await message.delete().catch(() => {});
 
-        // Timeout 10 دقائق
         if (member.moderatable) {
-
           await member.timeout(
             10 * 60 * 1000,
-            "Spam mentions - 3 mentions within 4 seconds"
+            "Spam mentions"
           ).catch(() => {});
-
         }
 
         await member.send({
           content:
             `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
             `تم رصد استخدام المنشن بشكل مزعج.\n` +
-            `بسبب تكرار المنشن **3 مرات خلال 4 ثواني**، ` +
             `تم إعطاؤك **Timeout لمدة 10 دقائق**.`
         }).catch(() => {});
 
@@ -751,182 +339,376 @@ client.on("messageCreate", async (message) => {
       }
     }
 
+  } catch (error) {
+    console.log("❌ AutoMod Error:", error);
+  }
+});
+
+// تنظيف بيانات المنشن
+setInterval(() => {
+
+  const now = Date.now();
+
+  for (const [userId, timestamps] of mentionTracker.entries()) {
+
+    const recent = timestamps.filter(
+      time => now - time <= 4000
+    );
+
+    if (recent.length === 0) {
+      mentionTracker.delete(userId);
+    } else {
+      mentionTracker.set(userId, recent);
+    }
+  }
+
+}, 60 * 1000);
+
+// ==========================================
+// 👮 أوامر الإدارة
+// ==========================================
+
+client.on("messageCreate", async (message) => {
+
+  try {
+
+    if (!message.guild || message.author.bot) return;
+
+    const args = message.content.trim().split(/\s+/);
+
+    const command = args[0].toLowerCase();
+
     // ==========================================
-    // 🔁 منع تكرار نفس الرسالة
+    // 🔒 قفل
     // ==========================================
 
-    const content =
-      message.content.trim().toLowerCase();
+    if (command === "قفل") {
 
-    if (content) {
-
-      const userId = message.author.id;
-
-      if (!repeatedMessages.has(userId)) {
-
-        repeatedMessages.set(userId, {
-          content: content,
-          count: 1,
-          lastMessage: Date.now()
-        });
-
-      } else {
-
-        const data =
-          repeatedMessages.get(userId);
-
-        const now = Date.now();
-
-        // إذا نفس الرسالة خلال 10 ثواني
-        if (
-          data.content === content &&
-          now - data.lastMessage <= 10000
-        ) {
-
-          data.count++;
-          data.lastMessage = now;
-
-          // 4 مرات
-          if (data.count >= 4) {
-
-            repeatedMessages.delete(userId);
-
-            await message.delete().catch(() => {});
-
-            if (member.moderatable) {
-
-              await member.timeout(
-                5 * 60 * 1000,
-                "Repeated messages spam"
-              ).catch(() => {});
-
-            }
-
-            await member.send({
-              content:
-                `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-                `تم رصد تكرار نفس الرسالة بشكل مزعج.\n` +
-                `تم إعطاؤك **Timeout لمدة 5 دقائق**.`
-            }).catch(() => {});
-
-            return;
-          }
-
-        } else {
-
-          repeatedMessages.set(userId, {
-            content: content,
-            count: 1,
-            lastMessage: now
-          });
-
-        }
+      if (!hasAdminRole(message.member)) {
+        return message.reply("❌ ما عندكش صلاحية.");
       }
+
+      await message.channel.permissionOverwrites.edit(
+        message.guild.roles.everyone,
+        {
+          SendMessages: false
+        }
+      );
+
+      return message.channel.send("🔒 تم قفل الشات.");
+    }
+
+    // ==========================================
+    // 🔓 فتح
+    // ==========================================
+
+    if (command === "فتح") {
+
+      if (!hasAdminRole(message.member)) {
+        return message.reply("❌ ما عندكش صلاحية.");
+      }
+
+      await message.channel.permissionOverwrites.edit(
+        message.guild.roles.everyone,
+        {
+          SendMessages: null
+        }
+      );
+
+      return message.channel.send("🔓 تم فتح الشات.");
+    }
+
+    // ==========================================
+    // 🧹 مسح
+    // ==========================================
+
+    if (
+      command === "مسح" ||
+      command === "تنظيف" ||
+      command === "حذف"
+    ) {
+
+      if (!hasAdminRole(message.member)) {
+        return message.reply("❌ ما عندكش صلاحية.");
+      }
+
+      let amount = parseInt(args[1]);
+
+      if (isNaN(amount)) amount = 100;
+
+      if (amount < 1) amount = 1;
+      if (amount > 100) amount = 100;
+
+      const messages = await message.channel.bulkDelete(
+        amount,
+        true
+      );
+
+      const msg = await message.channel.send(
+        `🧹 تم حذف **${messages.size}** رسالة.`
+      );
+
+      setTimeout(() => {
+        msg.delete().catch(() => {});
+      }, 3000);
+
+      return;
+    }
+
+    // ==========================================
+    // 🔊 سحب / تعال
+    // ==========================================
+
+    if (
+      command === "سحب" ||
+      command === "تعال"
+    ) {
+
+      if (!hasSupportRole(message.member)) {
+        return message.reply("❌ ما عندكش صلاحية للسحب.");
+      }
+
+      const voiceChannel =
+        message.member.voice.channel;
+
+      if (!voiceChannel) {
+        return message.reply(
+          "❌ لازم تكون داخل روم صوتي أولًا."
+        );
+      }
+
+      const target =
+        message.mentions.members.first();
+
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تسحبه."
+        );
+      }
+
+      if (
+        !message.guild.members.me.permissions.has(
+          PermissionsBitField.Flags.MoveMembers
+        )
+      ) {
+        return message.reply(
+          "❌ البوت ما عندهش صلاحية Move Members."
+        );
+      }
+
+      await target.voice.setChannel(
+        voiceChannel
+      );
+
+      return message.reply(
+        `🔊 تم سحب ${target} إلى **${voiceChannel.name}**.`
+      );
+    }
+
+    // ==========================================
+    // 🔇 كتم
+    // ==========================================
+
+    if (
+      command === "اسكت" ||
+      command === "كتم"
+    ) {
+
+      if (!hasAdminRole(message.member)) {
+        return message.reply(
+          "❌ ما عندكش صلاحية للكتم."
+        );
+      }
+
+      const target =
+        message.mentions.members.first();
+
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تسكته."
+        );
+      }
+
+      const duration =
+        parseDuration(args[2]);
+
+      if (args[2] && !duration) {
+        return message.reply(
+          "❌ الوقت غلط. مثال: `10m` أو `1h` أو `2d` أو `1w`."
+        );
+      }
+
+      if (
+        duration &&
+        duration > 28 * 24 * 60 * 60 * 1000
+      ) {
+        return message.reply(
+          "❌ أقصى مدة للكتم المؤقت 28 يوم."
+        );
+      }
+
+      await target.timeout(
+        duration,
+        `تم الكتم بواسطة ${message.author.tag}`
+      );
+
+      if (duration) {
+        return message.reply(
+          `🔇 تم كتم ${target} لمدة **${args[2]}**.`
+        );
+      }
+
+      return message.reply(
+        `🔇 تم كتم ${target} حتى يتم فك الكتم.`
+      );
+    }
+
+    // ==========================================
+    // 🔊 فك الكتم
+    // ==========================================
+
+    if (
+      command === "ادوي" ||
+      command === "فك"
+    ) {
+
+      if (!hasAdminRole(message.member)) {
+        return message.reply("❌ ما عندكش صلاحية.");
+      }
+
+      const target =
+        message.mentions.members.first();
+
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تفك عليه الكتم."
+        );
+      }
+
+      await target.timeout(null);
+
+      return message.reply(
+        `🔊 تم فك الكتم عن ${target}.`
+      );
+    }
+
+    // ==========================================
+    // 🔨 حظر
+    // ==========================================
+
+    if (
+      command === "تف" ||
+      command === "حضر" ||
+      command === "لحاس" ||
+      command === "صبي" ||
+      command === "حظر"
+    ) {
+
+      if (!hasAdminRole(message.member)) {
+        return message.reply(
+          "❌ ما عندكش صلاحية للحظر."
+        );
+      }
+
+      const target =
+        message.mentions.members.first();
+
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تحظره."
+        );
+      }
+
+      await target.ban({
+        reason:
+          `تم الحظر بواسطة ${message.author.tag}`
+      });
+
+      return message.channel.send(
+        `🔨 تم حظر **${target.user.tag}** من السيرفر.`
+      );
+    }
+
+    // ==========================================
+    // 👢 طرد
+    // ==========================================
+
+    if (
+      command === "طرد" ||
+      command === "طير"
+    ) {
+
+      if (!hasAdminRole(message.member)) {
+        return message.reply(
+          "❌ ما عندكش صلاحية للطرد."
+        );
+      }
+
+      const target =
+        message.mentions.members.first();
+
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تطرده."
+        );
+      }
+
+      if (!target.kickable) {
+        return message.reply(
+          "❌ ما نقدرش نطرد هذا الشخص."
+        );
+      }
+
+      await target.kick(
+        `تم الطرد بواسطة ${message.author.tag}`
+      );
+
+      return message.channel.send(
+        `👢 تم طرد **${target.user.tag}** من السيرفر.`
+      );
     }
 
   } catch (error) {
 
-    console.error(
-      "❌ AutoMod Error:",
-      error
-    );
+    console.log("❌ Admin Command Error:", error);
+
+    if (!message.replied && !message.deferred) {
+      message.reply(
+        "❌ صار خطأ أثناء تنفيذ الأمر."
+      ).catch(() => {});
+    }
 
   }
 
 });
 
 // ==========================================
-// 🧹 تنظيف بيانات المنشن
-// ==========================================
-
-setInterval(() => {
-
-  const now = Date.now();
-
-  for (
-    const [userId, timestamps]
-    of mentionTracker.entries()
-  ) {
-
-    const recent =
-      timestamps.filter(
-        time => now - time <= 4000
-      );
-
-    if (recent.length === 0) {
-
-      mentionTracker.delete(userId);
-
-    } else {
-
-      mentionTracker.set(
-        userId,
-        recent
-      );
-
-    }
-  }
-
-}, 60 * 1000);
-
-// ==========================================
-// 🧹 تنظيف بيانات الرسائل المتكررة
-// ==========================================
-
-setInterval(() => {
-
-  const now = Date.now();
-
-  for (
-    const [userId, data]
-    of repeatedMessages.entries()
-  ) {
-
-    if (now - data.lastMessage > 10000) {
-      repeatedMessages.delete(userId);
-    }
-
-  }
-
-}, 60 * 1000);
-
-console.log("🛡️ AutoMod System Loaded");
-console.log("🔗 Link Protection Loaded");
-console.log("📢 Mention Protection Loaded");
-console.log("🔁 Anti Spam Loaded");
-// ==========================================
-// 🎫 الجزء 4 — نظام التكت كامل
-// ==========================================
-
-// ==========================================
-// 📌 التحقق من أن الروم تكت
+// 🎫 أدوات التكت
 // ==========================================
 
 function isTicketChannel(channel) {
   return (
     channel &&
-    channel.isTextBased() &&
+    channel.name &&
     channel.name.startsWith(TICKET_PREFIX)
   );
 }
 
-// ==========================================
-// 👤 الحصول على صاحب التكت
-// ==========================================
-
-async function getTicketOwner(channel) {
+// البحث عن صاحب التكت من صلاحيات الروم
+async function findTicketOwner(channel) {
 
   try {
 
-    // البحث في صلاحيات الروم
     for (
-      const overwrite
-      of channel.permissionOverwrites.cache.values()
+      const overwrite of
+      channel.permissionOverwrites.cache.values()
     ) {
 
       if (overwrite.type !== 1) continue;
 
-      if (!overwrite.allow.has("ViewChannel")) continue;
+      if (!overwrite.allow.has("ViewChannel")) {
+        continue;
+      }
 
       const member =
         await channel.guild.members
@@ -934,451 +716,522 @@ async function getTicketOwner(channel) {
           .catch(() => null);
 
       if (!member) continue;
-
       if (member.user.bot) continue;
 
       if (hasAdminRole(member)) continue;
-
       if (hasSupportRole(member)) continue;
 
       return member;
     }
 
-    // محاولة البحث في رسائل Wick
-    const messages =
-      await channel.messages.fetch({
-        limit: 50
-      }).catch(() => null);
-
-    if (messages) {
-
-      for (const msg of messages.values()) {
-
-        for (const embed of msg.embeds) {
-
-          if (!embed.fields) continue;
-
-          for (const field of embed.fields) {
-
-            if (
-              field.name &&
-              field.name.includes("مالك التذكرة")
-            ) {
-
-              const match =
-                field.value.match(
-                  /<@!?(\d{17,20})>/
-                );
-
-              if (match) {
-
-                return await channel.guild.members
-                  .fetch(match[1])
-                  .catch(() => null);
-
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return null;
-
   } catch (error) {
-
-    console.error(
-      "❌ Ticket Owner Error:",
-      error
-    );
-
-    return null;
+    console.log("❌ Ticket Owner Error:", error);
   }
+
+  return null;
 }
 
 // ==========================================
-// 🎫 +come
+// 🎫 أوامر التكت
+// +come
+// +claim
+// +add
+// +remove
+// +rename
+// +close
 // ==========================================
 
 client.on("messageCreate", async (message) => {
 
   try {
 
-    if (!message.guild || message.author.bot) return;
+    if (!message.guild || message.author.bot) {
+      return;
+    }
+
+    const content =
+      message.content.trim();
+
+    const lower =
+      content.toLowerCase();
+
+    if (!lower.startsWith("+")) {
+      return;
+    }
+
+    const args =
+      content.split(/\s+/);
 
     const command =
-      message.content.trim().toLowerCase();
-
-    if (command !== "+come") return;
-
-    const channel = message.channel;
-
-    if (!isTicketChannel(channel)) {
-
-      return message.reply(
-        "❌ الأمر هذا يشتغل داخل التكتات فقط."
-      );
-
-    }
-
-    if (
-      !message.member.permissions.has(
-        "ManageChannels"
-      )
-    ) {
-
-      return message.reply(
-        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
-      );
-
-    }
-
-    const owner =
-      await getTicketOwner(channel);
-
-    if (!owner) {
-
-      return message.reply(
-        "❌ ما قدرتش نحدد صاحب التكت."
-      );
-
-    }
-
-    await channel.send({
-      content:
-        `📢 **${owner}**\n` +
-        `الدعم محتاج ردك في التكت، يرجى الرجوع للتكت.`
-    });
-
-    await owner.send({
-      content:
-        `📢 **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-        `الدعم محتاج ردك في التكت:\n` +
-        `${channel}`
-    }).catch(() => {});
-
-  } catch (error) {
-
-    console.error(
-      "❌ +come Error:",
-      error
-    );
-
-  }
-
-});
-
-// ==========================================
-// 🎫 +claim
-// ==========================================
-
-client.on("messageCreate", async (message) => {
-
-  try {
-
-    if (!message.guild || message.author.bot) return;
-
-    if (
-      message.content.trim().toLowerCase() !==
-      "+claim"
-    ) return;
-
-    const channel = message.channel;
-
-    if (!isTicketChannel(channel)) {
-
-      return message.reply(
-        "❌ الأمر هذا يشتغل داخل التكتات فقط."
-      );
-
-    }
-
-    if (!hasSupportRole(message.member)) {
-
-      return message.reply(
-        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
-      );
-
-    }
-
-    await channel.send(
-      `🎫 **تم استلام التكت**\n\n` +
-      `👤 المسؤول: ${message.author}\n` +
-      `📌 سيتم متابعة طلبك من قبلي.`
-    );
-
-  } catch (error) {
-
-    console.error(
-      "❌ +claim Error:",
-      error
-    );
-
-  }
-
-});
-
-// ==========================================
-// 🎫 +add @user
-// ==========================================
-
-client.on("messageCreate", async (message) => {
-
-  try {
-
-    if (!message.guild || message.author.bot) return;
-
-    const args =
-      message.content.trim().split(/\s+/);
-
-    if (
-      args[0].toLowerCase() !== "+add"
-    ) return;
-
-    const channel = message.channel;
-
-    if (!isTicketChannel(channel)) {
-
-      return message.reply(
-        "❌ الأمر هذا يشتغل داخل التكتات فقط."
-      );
-
-    }
-
-    if (!hasSupportRole(message.member)) {
-
-      return message.reply(
-        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
-      );
-
-    }
-
-    const target =
-      message.mentions.members.first();
-
-    if (!target) {
-
-      return message.reply(
-        "❌ منشن الشخص اللي تبي تضيفه."
-      );
-
-    }
-
-    await channel.permissionOverwrites.edit(
-      target.id,
-      {
-        ViewChannel: true,
-        SendMessages: true,
-        ReadMessageHistory: true
-      }
-    );
-
-    await channel.send(
-      `✅ تم إضافة ${target} إلى التكت بواسطة ${message.author}.`
-    );
-
-  } catch (error) {
-
-    console.error(
-      "❌ +add Error:",
-      error
-    );
-
-  }
-
-});
-
-// ==========================================
-// 🎫 +remove @user
-// ==========================================
-
-client.on("messageCreate", async (message) => {
-
-  try {
-
-    if (!message.guild || message.author.bot) return;
-
-    const args =
-      message.content.trim().split(/\s+/);
-
-    if (
-      args[0].toLowerCase() !== "+remove"
-    ) return;
-
-    const channel = message.channel;
-
-    if (!isTicketChannel(channel)) {
-
-      return message.reply(
-        "❌ الأمر هذا يشتغل داخل التكتات فقط."
-      );
-
-    }
-
-    if (!hasSupportRole(message.member)) {
-
-      return message.reply(
-        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
-      );
-
-    }
-
-    const target =
-      message.mentions.members.first();
-
-    if (!target) {
-
-      return message.reply(
-        "❌ منشن الشخص اللي تبي تحذفه من التكت."
-      );
-
-    }
-
-    await channel.permissionOverwrites.delete(
-      target.id
-    );
-
-    await channel.send(
-      `✅ تم إزالة ${target} من التكت بواسطة ${message.author}.`
-    );
-
-  } catch (error) {
-
-    console.error(
-      "❌ +remove Error:",
-      error
-    );
-
-  }
-
-});
-
-// ==========================================
-// 🎫 +rename الاسم
-// ==========================================
-
-client.on("messageCreate", async (message) => {
-
-  try {
-
-    if (!message.guild || message.author.bot) return;
-
-    const args =
-      message.content.trim().split(/\s+/);
-
-    if (
-      args[0].toLowerCase() !== "+rename"
-    ) return;
-
-    const channel = message.channel;
-
-    if (!isTicketChannel(channel)) {
-
-      return message.reply(
-        "❌ الأمر هذا يشتغل داخل التكتات فقط."
-      );
-
-    }
-
-    if (!hasSupportRole(message.member)) {
-
-      return message.reply(
-        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
-      );
-
-    }
-
-    const newName =
-      args.slice(1).join("-");
-
-    if (!newName) {
-
-      return message.reply(
-        "❌ اكتب الاسم الجديد.\nمثال: `+rename مشكلة-شراء`"
-      );
-
-    }
-
-    await channel.setName(
-      `${TICKET_PREFIX}${newName}`
-    );
-
-    await channel.send(
-      `✏️ تم تغيير اسم التكت إلى **${TICKET_PREFIX}${newName}** بواسطة ${message.author}.`
-    );
-
-  } catch (error) {
-
-    console.error(
-      "❌ +rename Error:",
-      error
-    );
-
-  }
-
-});
-
-// ==========================================
-// 🎫 +close
-// ==========================================
-
-client.on("messageCreate", async (message) => {
-
-  try {
-
-    if (!message.guild || message.author.bot) return;
-
-    if (
-      message.content.trim().toLowerCase() !==
+      args[0].toLowerCase();
+
+    const channel =
+      message.channel;
+
+    // ==========================================
+    // 🔎 كل أوامر التكت لازم داخل تكت
+    // ==========================================
+
+    const ticketCommands = [
+      "+come",
+      "+claim",
+      "+add",
+      "+remove",
+      "+rename",
       "+close"
-    ) return;
+    ];
 
-    const channel = message.channel;
-
-    if (!isTicketChannel(channel)) {
-
+    if (
+      ticketCommands.includes(command) &&
+      !isTicketChannel(channel)
+    ) {
       return message.reply(
         "❌ الأمر هذا يشتغل داخل التكتات فقط."
       );
-
     }
 
-    if (!hasSupportRole(message.member)) {
+    // ==========================================
+    // 📢 +come
+    // ==========================================
 
-      return message.reply(
-        "❌ ما عندكش صلاحية تسكر التكت."
-      );
+    if (command === "+come") {
 
-    }
-
-    await message.reply(
-      "🔒 جاري إغلاق التكت..."
-    );
-
-    await channel.permissionOverwrites.edit(
-      message.guild.roles.everyone,
-      {
-        SendMessages: false
+      if (!message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+      )) {
+        return message.reply(
+          "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+        );
       }
-    ).catch(() => {});
 
-    await channel.send(
-      `🔒 **تم إغلاق التكت بواسطة ${message.author}.**\n` +
-      `🗑️ سيتم حذف التكت بعد **5 ثواني**.`
-    );
+      const owner =
+        await findTicketOwner(channel);
 
-    setTimeout(async () => {
+      if (!owner) {
+        return message.reply(
+          "❌ ما قدرتش نحدد صاحب التكت."
+        );
+      }
 
-      await channel.delete(
-        "Ticket closed"
+      await channel.send({
+        content:
+          `📢 **${owner}**\n` +
+          `الدعم محتاج ردك في التكت، يرجى الرجوع للتكت.`
+      });
+
+      await owner.send({
+        content:
+          `📢 **تنبيه من 𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**\n\n` +
+          `الدعم محتاج ردك في التكت:\n` +
+          `${channel}`
+      }).catch(() => {});
+
+      return;
+    }
+
+    // ==========================================
+    // 👋 +claim
+    // ==========================================
+
+    if (command === "+claim") {
+
+      if (!hasSupportRole(message.member)) {
+        return message.reply(
+          "❌ ما عندكش صلاحية تستعمل +claim."
+        );
+      }
+
+      const oldName =
+        channel.name.replace(/^🎫・/, "");
+
+      if (!channel.name.includes("・")) {
+        return message.reply(
+          "❌ ما قدرتش نحدد اسم التكت."
+        );
+      }
+
+      const claimedName =
+        `🎫・${oldName}`;
+
+      await channel.setName(
+        claimedName
       ).catch(() => {});
 
-    }, 5000);
+      await channel.send(
+        `🎫 **تم استلام التكت بواسطة ${message.author}.**`
+      );
+
+      return;
+    }
+
+    // ==========================================
+    // ➕ +add
+    // ==========================================
+
+    if (command === "+add") {
+
+      if (!message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+      )) {
+        return message.reply(
+          "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+        );
+      }
+
+      const target =
+        message.mentions.members.first();
+
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تضيفه."
+        );
+      }
+
+      await channel.permissionOverwrites.edit(
+        target.id,
+        {
+          ViewChannel: true,
+          SendMessages: true,
+          ReadMessageHistory: true
+        }
+      );
+
+      return message.channel.send(
+        `✅ تم إضافة ${target} إلى التكت.`
+      );
+    }
+
+    // ==========================================
+    // ➖ +remove
+    // ==========================================
+
+    if (command === "+remove") {
+
+      if (!message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+      )) {
+        return message.reply(
+          "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+        );
+      }
+
+      const target =
+        message.mentions.members.first();
+
+    
+      if (!target) {
+        return message.reply(
+          "❌ منشن الشخص اللي تبي تحذفه من التكت."
+        );
+      }
+
+      await channel.permissionOverwrites.delete(
+        target.id
+      ).catch(() => {});
+
+      return message.channel.send(
+        `✅ تم إزالة ${target} من التكت.`
+      );
+    }
+
+    // ==========================================
+    // ✏️ +rename
+    // ==========================================
+
+    if (command === "+rename") {
+
+      if (!message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+      )) {
+        return message.reply(
+          "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+        );
+      }
+
+      const newName =
+        args.slice(1).join("-");
+
+      if (!newName) {
+        return message.reply(
+          "❌ اكتب الاسم الجديد.\nمثال: `+rename طلب-تعويض`"
+        );
+      }
+
+      const safeName =
+        newName
+          .toLowerCase()
+          .replace(/[^a-zA-Z0-9\u0600-\u06FF\-]/g, "-")
+          .slice(0, 80);
+
+      await channel.setName(
+        `${TICKET_PREFIX}${safeName}`
+      );
+
+      return message.channel.send(
+        `✏️ تم تغيير اسم التكت إلى **${channel.name}**.`
+      );
+    }
+
+    // ==========================================
+    // 🔒 +close
+    // ==========================================
+
+    if (command === "+close") {
+
+      if (!message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+      )) {
+        return message.reply(
+          "❌ ما عندكش صلاحية تسكر التكت."
+        );
+      }
+
+      await message.reply(
+        "🔒 جاري إغلاق التكت..."
+      );
+
+      await channel.permissionOverwrites.edit(
+        message.guild.roles.everyone,
+        {
+          SendMessages: false
+        }
+      ).catch(() => {});
+
+      await channel.send(
+        `🔒 **تم إغلاق التكت بواسطة ${message.author}.**\n` +
+        `🗑️ سيتم حذف التكت بعد **5 ثواني**.`
+      );
+
+      setTimeout(async () => {
+
+        await channel.delete(
+          "Ticket closed"
+        ).catch(() => {});
+
+      }, 5000);
+
+      return;
+    }
 
   } catch (error) {
 
-    console.error(
-      "❌ +close Error:",
+    console.log("❌ Ticket Command Error:", error);
+
+  }
+
+});
+
+// ==========================================
+// 🛡️ ANTI-NUKE
+// حماية الرومات والرتب والصلاحيات والباند والكِيك
+// ==========================================
+
+const antiNukeTracker = new Map();
+
+const ANTI_NUKE_WINDOW = 10000;
+const ANTI_NUKE_LIMIT = 3;
+
+function trackAction(guildId, userId, action) {
+
+  const key =
+    `${guildId}:${userId}:${action}`;
+
+  const now = Date.now();
+
+  if (!antiNukeTracker.has(key)) {
+    antiNukeTracker.set(key, []);
+  }
+
+  const list =
+    antiNukeTracker.get(key);
+
+  const recent =
+    list.filter(
+      time => now - time <= ANTI_NUKE_WINDOW
+    );
+
+  recent.push(now);
+
+  antiNukeTracker.set(
+    key,
+    recent
+  );
+
+  return recent.length;
+}
+
+async function punishNuker(guild, userId, reason) {
+
+  try {
+
+    const member =
+      await guild.members
+        .fetch(userId)
+        .catch(() => null);
+
+    if (!member) return;
+
+    // الرتب المحمية لا يتم معاقبتها
+    if (isProtected(member)) return;
+
+    if (member.bannable) {
+
+      await member.ban({
+        reason:
+          `Anti-Nuke: ${reason}`
+      }).catch(() => {});
+
+      return;
+    }
+
+    if (member.kickable) {
+
+      await member.kick(
+        `Anti-Nuke: ${reason}`
+      ).catch(() => {});
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Anti-Nuke Punishment Error:",
+      error
+    );
+
+  }
+
+}
+
+// ==========================================
+// 🏠 إنشاء / حذف / تعديل الرومات
+// ==========================================
+
+client.on("channelCreate", async (channel) => {
+
+  try {
+
+    if (!channel.guild) return;
+
+    const audit =
+      await channel.guild.fetchAuditLogs({
+        type: 10,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      5000
+    ) return;
+
+    const user =
+      entry.executor;
+
+    if (!user || user.bot) return;
+
+    const member =
+      await channel.guild.members
+        .fetch(user.id)
+        .catch(() => null);
+
+    if (!member) return;
+
+    if (isProtected(member)) return;
+
+    const count =
+      trackAction(
+        channel.guild.id,
+        user.id,
+        "channelCreate"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+      
+      await punishNuker(
+        channel.guild,
+        user.id,
+        "إنشاء رومات بشكل تخريبي"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Channel Create Protection Error:",
+      error
+    );
+
+  }
+
+});
+
+client.on("channelDelete", async (channel) => {
+
+  try {
+
+    if (!channel.guild) return;
+
+    const audit =
+      await channel.guild.fetchAuditLogs({
+        type: 12,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      5000
+    ) return;
+
+    const user =
+      entry.executor;
+
+    if (!user || user.bot) return;
+
+    const member =
+      await channel.guild.members
+        .fetch(user.id)
+        .catch(() => null);
+
+    if (!member) return;
+
+    if (isProtected(member)) return;
+
+    const count =
+      trackAction(
+        channel.guild.id,
+        user.id,
+        "channelDelete"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+
+      await punishNuker(
+        channel.guild,
+        user.id,
+        "حذف رومات بشكل تخريبي"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Channel Delete Protection Error:",
       error
     );
 
@@ -1387,10 +1240,400 @@ client.on("messageCreate", async (message) => {
 });
 
 // ==========================================
-// 🚀 تشغيل البوت
+// 🏷️ إنشاء / حذف / تعديل الرتب
+// ==========================================
+
+client.on("roleCreate", async (role) => {
+
+  try {
+
+    const guild =
+      role.guild;
+
+    const audit =
+      await guild.fetchAuditLogs({
+        type: 30,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      5000
+    ) return;
+
+    const user =
+      entry.executor;
+
+    if (!user || user.bot) return;
+
+    const member =
+      await guild.members
+        .fetch(user.id)
+        .catch(() => null);
+
+    if (!member) return;
+
+    if (isProtected(member)) return;
+
+    const count =
+      trackAction(
+        guild.id,
+        user.id,
+        "roleCreate"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+
+      await punishNuker(
+        guild,
+        user.id,
+        "إنشاء رتب بشكل تخريبي"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Role Create Protection Error:",
+      error
+    );
+
+  }
+
+});
+
+client.on("roleDelete", async (role) => {
+
+  try {
+
+    const guild =
+      role.guild;
+
+    const audit =
+      await guild.fetchAuditLogs({
+        type: 32,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      5000
+    ) return;
+
+    const user =
+      entry.executor;
+
+    if (!user || user.bot) return;
+
+    const member =
+      await guild.members
+        .fetch(user.id)
+        .catch(() => null);
+
+    if (!member) return;
+
+    if (isProtected(member)) return;
+
+    const count =
+      trackAction(
+        guild.id,
+        user.id,
+        "roleDelete"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+
+      await punishNuker(
+        guild,
+        user.id,
+        "حذف رتب بشكل تخريبي"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Role Delete Protection Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🚨 دخول بوت جديد
+// ==========================================
+
+client.on("guildMemberAdd", async (member) => {
+
+  try {
+
+    if (!member.user.bot) return;
+
+    const guild =
+      member.guild;
+
+    const audit =
+      await guild.fetchAuditLogs({
+        type: 28,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      10000
+    ) return;
+
+    const executor =
+      entry.executor;
+
+    if (!executor) return;
+
+    const staff =
+      await guild.members
+        .fetch(executor.id)
+        .catch(() => null);
+
+    if (!staff) return;
+
+    if (isProtected(staff)) return;
+
+    const count =
+      trackAction(
+        guild.id,
+        executor.id,
+        "botAdd"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+
+      await member.kick(
+        "Anti-Nuke: إضافة بوتات بشكل مشبوه"
+      ).catch(() => {});
+
+      await punishNuker(
+        guild,
+        executor.id,
+        "إضافة بوتات بشكل مشبوه"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Bot Protection Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🔨 حظر عضو
+// ==========================================
+
+client.on("guildBanAdd", async (ban) => {
+
+  try {
+
+    const guild =
+      ban.guild;
+
+    const audit =
+      await guild.fetchAuditLogs({
+        type: 22,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      5000
+    ) return;
+
+    const user =
+      entry.executor;
+
+    if (!user || user.bot) return;
+
+    const member =
+      await guild.members
+        .fetch(user.id)
+        .catch(() => null);
+
+    if (!member) return;
+
+    if (isProtected(member)) return;
+
+    const count =
+      trackAction(
+        guild.id,
+        user.id,
+        "ban"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+
+      await punishNuker(
+        guild,
+        user.id,
+        "حظر أعضاء بشكل تخريبي"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Ban Protection Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 👢 طرد عضو
+// ==========================================
+
+client.on("guildMemberRemove", async (member) => {
+
+  try {
+
+    const guild =
+      member.guild;
+
+    const audit =
+      await guild.fetchAuditLogs({
+        type: 20,
+        limit: 1
+      }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry =
+      audit.entries.first();
+
+    if (!entry) return;
+
+    if (
+      Date.now() - entry.createdTimestamp >
+      5000
+    ) return;
+
+    const user =
+      entry.executor;
+
+    if (!user || user.bot) return;
+
+    const staff =
+      await guild.members
+        .fetch(user.id)
+        .catch(() => null);
+
+    if (!staff) return;
+
+    if (isProtected(staff)) return;
+
+    const count =
+      trackAction(
+        guild.id,
+        user.id,
+        "kick"
+      );
+
+    if (count >= ANTI_NUKE_LIMIT) {
+
+      await punishNuker(
+        guild,
+        user.id,
+        "طرد أعضاء بشكل تخريبي"
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "❌ Kick Protection Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🧹 تنظيف Anti-Nuke
+// ==========================================
+
+setInterval(() => {
+
+  const now = Date.now();
+
+  for (
+    const [key, timestamps]
+    of antiNukeTracker.entries()
+  ) {
+
+    const recent =
+      timestamps.filter(
+        time =>
+          now - time <= ANTI_NUKE_WINDOW
+      );
+
+    if (recent.length === 0) {
+
+      antiNukeTracker.delete(key);
+
+    } else {
+
+      antiNukeTracker.set(
+        key,
+        recent
+      );
+
+    }
+
+  }
+
+}, 60000);
+
+// ==========================================
+// 🤖 LOGIN
 // ==========================================
 
 client.login(TOKEN);
-
-console.log("🎫 Ticket System Loaded");
-console.log("🚀 Bot Starting...");

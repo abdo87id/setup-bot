@@ -9,24 +9,53 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-GatewayIntentBits.MessageContent,
-  GatewayIntentBits.GuildVoiceStates
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates
   ]
 });
 
-// ضع توكن البوت هنا
+// ==========================================
+// 🔑 توكن البوت
+// ==========================================
+
 const TOKEN = process.env.TOKEN;
 
-// روم الترحيب
+// ==========================================
+// 👋 روم الترحيب
+// ==========================================
+
 const WELCOME_CHANNEL = "1532781166468272311";
+
+// ==========================================
+// 🎫 إعدادات التكت
+// ==========================================
+
+const TICKET_PREFIX = "🎫・";
+
+// ==========================================
+// 🛡️ الرتب
+// ==========================================
+
+const ADMIN_ROLE_ID = "1532780829158146048";
+const SUPPORT_ROLE_ID = "1532780834468139161";
+const PROTECTED_ROLE_ID = "1532780825534402771";
+
+// ==========================================
+// 🚀 تشغيل البوت
+// ==========================================
 
 client.once("clientReady", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
+// ==========================================
+// 👋 نظام الترحيب
+// ==========================================
+
 client.on("guildMemberAdd", async (member) => {
 
   const channel = member.guild.channels.cache.get(WELCOME_CHANNEL);
+
   if (!channel) return;
 
   const embed = new EmbedBuilder()
@@ -35,22 +64,27 @@ client.on("guildMemberAdd", async (member) => {
       name: "𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖",
       iconURL: member.guild.iconURL({ dynamic: true })
     })
-    .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 1024 }))
+    .setThumbnail(
+      member.user.displayAvatarURL({
+        dynamic: true,
+        size: 1024
+      })
+    )
     .setDescription(`
-# مرحباً بك في **𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**  
+# مرحباً بك في **𝐀𝐓𝐋𝐀𝐍𝐓𝐈𝐒 𝐂𝐈𝐓𝐘 𝐂𝐅𝐖**
 
- منور/ه السيرفر ${member} <a:1076562476444950669:1520857459839991951>
+منور/ه السيرفر ${member} <a:1076562476444950669:1520857459839991951>
 
- الرجاء قراءة القوانين لتجنب المخالفات <a:769738405054644276:1520873740076843129>
+الرجاء قراءة القوانين لتجنب المخالفات <a:769738405054644276:1520873740076843129>
 <#1532781203533598771>
 
- روم الأخبار موجود فيه كل جديد السيرفر <a:Announcements:1534640407374463007>
+روم الأخبار موجود فيه كل جديد السيرفر <a:Announcements:1534640407374463007>
 <#1532781186236153906>
 
- عندك أي استفسار؟ توجه إلى التكت <:ViperSemoji:1534639284768870691>
+عندك أي استفسار؟ توجه إلى التكت <:ViperSemoji:1534639284768870691>
 <#1532781401689293030>
 
- نتمنى لك رحلة موفقة في السيرفر <a:1226_discord_verified:1534639614940151928> 
+نتمنى لك رحلة موفقة في السيرفر <a:1226_discord_verified:1534639614940151928>
 
 ━━━━━━━━━━━━━━━━━━
 
@@ -63,28 +97,29 @@ ${member.id}
 **أنت العضو رقم**
 ${member.guild.memberCount}
 `)
-    .setImage(member.guild.iconURL({ dynamic: true, size: 1024 }))
+    .setImage(
+      member.guild.iconURL({
+        dynamic: true,
+        size: 1024
+      })
+    )
     .setTimestamp();
 
-  channel.send({
+  await channel.send({
     embeds: [embed]
-  });
-
+  }).catch(() => {});
 });
 
-// ===============================
-// نظام التكت
-// ===============================
+// ==========================================
+// 🎫 رسالة التكت عند إنشاء الروم
+// ==========================================
 
 client.on("channelCreate", async (channel) => {
 
   if (!channel.guild) return;
   if (!channel.isTextBased()) return;
-
-  // التحقق من أن اسم الروم يبدأ بإيموجي التكت
   if (!channel.name.startsWith("🎫")) return;
 
-  // ننتظر 3 ثواني حتى يكمل Wick إنشاء التكت
   setTimeout(async () => {
 
     try {
@@ -100,50 +135,30 @@ client.on("channelCreate", async (channel) => {
 `);
 
     } catch (error) {
-      console.log("❌ لم أستطع إرسال رسالة التكت:", error);
+
+      console.log(
+        "❌ لم أستطع إرسال رسالة التكت:",
+        error
+      );
+
     }
 
   }, 3000);
 });
 
-// ===============================
-// نظام @everyone
-// ===============================
+console.log("👋 Welcome System Loaded");
+console.log("🎫 Ticket Welcome System Loaded");
+// ==========================================
+// 👮‍♂️ الجزء 2 — أوامر الإدارة
+// ==========================================
 
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-
-  if (!message.mentions.everyone) return;
-
-  try {
-    await message.channel.send({
-      files: [
-        {
-          attachment: "./standard.gif",
-          name: "standard.gif"
-        }
-      ]
-    });
-
-  } catch (error) {
-    console.log("❌ خطأ في إرسال GIF:");
-    console.log(error);
-  }
-});
-// ===============================
-// رتب الأوامر
-// ===============================
-
-const ADMIN_ROLE_ID = "1532780829158146048";
-const SUPPORT_ROLE_ID = "1532780834468139161";
-
-
-// ===============================
-// التحقق من رتبة الإدارة
-// الرتبة المحددة وكل اللي فوقها
-// ===============================
+// ==========================================
+// 🔐 التحقق من رتبة الإدارة
+// ==========================================
 
 function hasAdminRole(member) {
+
+  if (!member || !member.guild) return false;
 
   const role = member.guild.roles.cache.get(ADMIN_ROLE_ID);
 
@@ -152,13 +167,13 @@ function hasAdminRole(member) {
   return member.roles.highest.position >= role.position;
 }
 
-
-// ===============================
-// التحقق من رتبة الدعم
-// الرتبة المحددة وكل اللي فوقها
-// ===============================
+// ==========================================
+// 🎫 التحقق من رتبة الدعم
+// ==========================================
 
 function hasSupportRole(member) {
+
+  if (!member || !member.guild) return false;
 
   const role = member.guild.roles.cache.get(SUPPORT_ROLE_ID);
 
@@ -167,20 +182,34 @@ function hasSupportRole(member) {
   return member.roles.highest.position >= role.position;
 }
 
+// ==========================================
+// 🛡️ الرتبة المحمية
+// الرتبة نفسها وكل الرتب الأعلى منها
+// ==========================================
 
-// ===============================
-// تحويل الوقت
-// 10m = 10 دقائق
-// 1h = ساعة
-// 2d = يومين
-// 1w = أسبوع
-// ===============================
+function isProtected(member) {
+
+  if (!member || !member.guild) return false;
+
+  const protectedRole =
+    member.guild.roles.cache.get(PROTECTED_ROLE_ID);
+
+  if (!protectedRole) return false;
+
+  return member.roles.highest.position >= protectedRole.position;
+}
+
+// ==========================================
+// ⏱️ تحويل الوقت
+// 10m / 1h / 2d / 1w
+// ==========================================
 
 function parseDuration(input) {
 
   if (!input) return null;
 
-  const match = input.toLowerCase().match(/^(\d+)(s|m|h|d|w)$/);
+  const match =
+    input.toLowerCase().match(/^(\d+)(s|m|h|d|w)$/);
 
   if (!match) return null;
 
@@ -198,23 +227,24 @@ function parseDuration(input) {
   return amount * units[unit];
 }
 
-
-// ===============================
-// أوامر الإدارة
-// ===============================
+// ==========================================
+// 📋 أوامر الإدارة
+// ==========================================
 
 client.on("messageCreate", async (message) => {
 
   if (message.author.bot) return;
   if (!message.guild) return;
 
-  const args = message.content.trim().split(/\s+/);
-  const command = args[0].toLowerCase();
+  const args =
+    message.content.trim().split(/\s+/);
 
+  const command =
+    args[0].toLowerCase();
 
-  // ===============================
-  // قفل
-  // ===============================
+  // ==========================================
+  // 🔒 قفل
+  // ==========================================
 
   if (command === "قفل") {
 
@@ -231,20 +261,23 @@ client.on("messageCreate", async (message) => {
         }
       );
 
-      return message.channel.send("🔒 تم قفل الشات.");
+      return message.channel.send(
+        "🔒 تم قفل الشات."
+      );
 
     } catch (error) {
 
       console.log(error);
-      return message.reply("❌ ما قدرتش نقفل الشات.");
 
+      return message.reply(
+        "❌ ما قدرتش نقفل الشات."
+      );
     }
   }
 
-
-  // ===============================
-  // فتح
-  // ===============================
+  // ==========================================
+  // 🔓 فتح
+  // ==========================================
 
   if (command === "فتح") {
 
@@ -261,20 +294,23 @@ client.on("messageCreate", async (message) => {
         }
       );
 
-      return message.channel.send("🔓 تم فتح الشات.");
+      return message.channel.send(
+        "🔓 تم فتح الشات."
+      );
 
     } catch (error) {
 
       console.log(error);
-      return message.reply("❌ ما قدرتش نفتح الشات.");
 
+      return message.reply(
+        "❌ ما قدرتش نفتح الشات."
+      );
     }
   }
 
-
-  // ===============================
-  // مسح / تنظيف / حذف
-  // ===============================
+  // ==========================================
+  // 🧹 مسح / تنظيف / حذف
+  // ==========================================
 
   if (
     command === "مسح" ||
@@ -295,14 +331,16 @@ client.on("messageCreate", async (message) => {
 
     try {
 
-      const messages = await message.channel.bulkDelete(
-        amount,
-        true
-      );
+      const messages =
+        await message.channel.bulkDelete(
+          amount,
+          true
+        );
 
-      const msg = await message.channel.send(
-        `🧹 تم حذف **${messages.size}** رسالة.`
-      );
+      const msg =
+        await message.channel.send(
+          `🧹 تم حذف **${messages.size}** رسالة.`
+        );
 
       setTimeout(() => {
         msg.delete().catch(() => {});
@@ -311,15 +349,16 @@ client.on("messageCreate", async (message) => {
     } catch (error) {
 
       console.log(error);
-      return message.reply("❌ ما قدرتش نمسح الرسائل.");
 
+      return message.reply(
+        "❌ ما قدرتش نمسح الرسائل."
+      );
     }
   }
 
-
-  // ===============================
-  // سحب / تعال
-  // ===============================
+  // ==========================================
+  // 🔊 سحب / تعال
+  // ==========================================
 
   if (
     command === "سحب" ||
@@ -327,10 +366,13 @@ client.on("messageCreate", async (message) => {
   ) {
 
     if (!hasSupportRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية للسحب.");
+      return message.reply(
+        "❌ ما عندكش صلاحية للسحب."
+      );
     }
 
-    const voiceChannel = message.member.voice.channel;
+    const voiceChannel =
+      message.member.voice.channel;
 
     if (!voiceChannel) {
       return message.reply(
@@ -338,7 +380,8 @@ client.on("messageCreate", async (message) => {
       );
     }
 
-    const target = message.mentions.members.first();
+    const target =
+      message.mentions.members.first();
 
     if (!target) {
       return message.reply(
@@ -346,7 +389,10 @@ client.on("messageCreate", async (message) => {
       );
     }
 
-    if (!message.guild.members.me.permissions.has("MoveMembers")) {
+    if (
+      !message.guild.members.me.permissions
+        .has("MoveMembers")
+    ) {
       return message.reply(
         "❌ البوت ما عندهش صلاحية Move Members."
       );
@@ -354,7 +400,9 @@ client.on("messageCreate", async (message) => {
 
     try {
 
-      await target.voice.setChannel(voiceChannel);
+      await target.voice.setChannel(
+        voiceChannel
+      );
 
       return message.reply(
         `🔊 تم سحب ${target} إلى **${voiceChannel.name}**.`
@@ -367,14 +415,12 @@ client.on("messageCreate", async (message) => {
       return message.reply(
         "❌ ما قدرتش نسحب الشخص."
       );
-
     }
   }
 
-
-  // ===============================
-  // اسكت / كتم
-  // ===============================
+  // ==========================================
+  // 🔇 اسكت / كتم
+  // ==========================================
 
   if (
     command === "اسكت" ||
@@ -382,10 +428,13 @@ client.on("messageCreate", async (message) => {
   ) {
 
     if (!hasAdminRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية للكتم.");
+      return message.reply(
+        "❌ ما عندكش صلاحية للكتم."
+      );
     }
 
-    const target = message.mentions.members.first();
+    const target =
+      message.mentions.members.first();
 
     if (!target) {
       return message.reply(
@@ -393,7 +442,8 @@ client.on("messageCreate", async (message) => {
       );
     }
 
-    const duration = parseDuration(args[2]);
+    const duration =
+      parseDuration(args[2]);
 
     if (args[2] && !duration) {
       return message.reply(
@@ -422,7 +472,6 @@ client.on("messageCreate", async (message) => {
         return message.reply(
           `🔇 تم كتم ${target} لمدة **${args[2]}**.`
         );
-
       }
 
       return message.reply(
@@ -436,14 +485,12 @@ client.on("messageCreate", async (message) => {
       return message.reply(
         "❌ ما قدرتش نكتم الشخص. تأكد من صلاحية Moderate Members."
       );
-
     }
   }
 
-
-  // ===============================
-  // ادوي / فك الكتم
-  // ===============================
+  // ==========================================
+  // 🔊 ادوي / فك
+  // ==========================================
 
   if (
     command === "ادوي" ||
@@ -451,10 +498,13 @@ client.on("messageCreate", async (message) => {
   ) {
 
     if (!hasAdminRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية.");
+      return message.reply(
+        "❌ ما عندكش صلاحية."
+      );
     }
 
-    const target = message.mentions.members.first();
+    const target =
+      message.mentions.members.first();
 
     if (!target) {
       return message.reply(
@@ -477,14 +527,12 @@ client.on("messageCreate", async (message) => {
       return message.reply(
         "❌ ما قدرتش نفك الكتم."
       );
-
     }
   }
 
-
-  // ===============================
-  // تف / حضر / لحاس / صبي / حظر
-  // ===============================
+  // ==========================================
+  // 🔨 حظر
+  // ==========================================
 
   if (
     command === "تف" ||
@@ -495,10 +543,13 @@ client.on("messageCreate", async (message) => {
   ) {
 
     if (!hasAdminRole(message.member)) {
-      return message.reply("❌ ما عندكش صلاحية للحظر.");
+      return message.reply(
+        "❌ ما عندكش صلاحية للحظر."
+      );
     }
 
-    const target = message.mentions.members.first();
+    const target =
+      message.mentions.members.first();
 
     if (!target) {
       return message.reply(
@@ -509,7 +560,8 @@ client.on("messageCreate", async (message) => {
     try {
 
       await target.ban({
-        reason: `تم الحظر بواسطة ${message.author.tag}`
+        reason:
+          `تم الحظر بواسطة ${message.author.tag}`
       });
 
       return message.channel.send(
@@ -523,613 +575,822 @@ client.on("messageCreate", async (message) => {
       return message.reply(
         "❌ ما قدرتش نحظر الشخص. تأكد من صلاحية Ban Members."
       );
-
     }
   }
 
 });
-// ===============================
-// 🛡️ AUTO MOD - Atlantis
-// ===============================
+
+console.log("👮‍♂️ Admin Commands Loaded");
+// ==========================================
+// 🛡️ الجزء 3 — AUTO MOD والحماية
+// ==========================================
+
+// ==========================================
+// 📊 تتبع المنشنات
+// ==========================================
 
 const mentionTracker = new Map();
 
-const PROTECTED_ROLE_ID = "1532780825534402771";
+// ==========================================
+// 🔗 روابط Discord
+// ==========================================
 
-// الرتب اللي فوق رتبة الحماية + الرتبة نفسها مستثناة
-function isProtected(member) {
-    if (!member || !member.guild) return false;
-
-    const protectedRole = member.guild.roles.cache.get(PROTECTED_ROLE_ID);
-    if (!protectedRole) return false;
-
-    return member.roles.highest.position >= protectedRole.position;
-}
-
-// روابط Discord
 const discordInviteRegex =
-    /(https?:\/\/)?(www\.)?(discord\.gg|discord\.com\/invite|discordapp\.com\/invite)\/[a-zA-Z0-9-]+/gi;
+  /(https?:\/\/)?(www\.)?(discord\.gg|discord\.com\/invite|discordapp\.com\/invite)\/[a-zA-Z0-9-]+/gi;
 
-// أي رابط
+// ==========================================
+// 🔗 جميع الروابط
+// ==========================================
+
 const anyLinkRegex =
-    /(https?:\/\/|www\.)[^\s]+/gi;
+  /(https?:\/\/|www\.)[^\s]+/gi;
+
+// ==========================================
+// 🔁 تتبع الرسائل المتكررة
+// ==========================================
+
+const repeatedMessages = new Map();
+
+// ==========================================
+// 📢 AUTO MOD
+// ==========================================
 
 client.on("messageCreate", async (message) => {
-    try {
-        // تجاهل البوتات والرسائل بدون سيرفر
-        if (!message.guild || message.author.bot) return;
 
-        const member = message.member;
+  try {
 
-        // الإدارة العليا والرتبة المحمية مستثناة
-        if (isProtected(member)) return;
+    if (!message.guild || message.author.bot) return;
 
-        // =========================================
-        // 🔗 حماية روابط Discord
-        // =========================================
+    const member = message.member;
 
-        if (discordInviteRegex.test(message.content)) {
+    // الرتب المحمية مستثناة من الحماية
+    if (isProtected(member)) return;
 
-            // حذف الرسالة
-            await message.delete().catch(() => {});
+    // ==========================================
+    // 📢 @everyone / @here
+    // ==========================================
 
-            // Timeout لمدة ساعة
-            if (member.moderatable) {
-                await member.timeout(
-                    60 * 60 * 1000,
-                    "إرسال رابط سيرفر Discord ممنوع"
-                ).catch(() => {});
-            }
+    if (message.mentions.everyone) {
 
-            // رسالة خاصة
-            await member.send({
-                content:
-                    `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-                    `تم منعك من إرسال روابط سيرفرات Discord.\n` +
-                    `تم إعطاؤك **Timeout لمدة ساعة** بسبب إرسال رابط Discord.`
-            }).catch(() => {});
+      await message.channel.send({
+        files: [
+          {
+            attachment: "./standard.gif",
+            name: "standard.gif"
+          }
+        ]
+      }).catch(() => {});
 
-            return;
-        }
-
-        // =========================================
-        // 🔗 حماية جميع الروابط الأخرى
-        // =========================================
-
-        if (anyLinkRegex.test(message.content)) {
-
-            await message.delete().catch(() => {});
-
-            await member.send({
-                content:
-                    `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-                    `الروابط ممنوعة في هذا السيرفر.`
-            }).catch(() => {});
-
-            return;
-        }
-
-        // =========================================
-        // 📢 Anti Mention Spam
-        // 3 منشنات خلال 4 ثواني
-        // =========================================
-
-        const mentionCount = message.mentions.users.size;
-
-        if (mentionCount > 0) {
-
-            const userId = message.author.id;
-            const now = Date.now();
-
-            if (!mentionTracker.has(userId)) {
-                mentionTracker.set(userId, []);
-            }
-
-            const timestamps = mentionTracker.get(userId);
-
-            // نحذف المحاولات الأقدم من 4 ثواني
-            const recent = timestamps.filter(
-                time => now - time <= 4000
-            );
-
-            recent.push(now);
-
-            mentionTracker.set(userId, recent);
-
-            // 3 رسائل فيها منشن خلال 4 ثواني
-            if (recent.length >= 3) {
-
-                // تصفير العداد
-                mentionTracker.delete(userId);
-
-                // حذف الرسالة الحالية
-                await message.delete().catch(() => {});
-
-                // Timeout 10 دقائق
-                if (member.moderatable) {
-                    await member.timeout(
-                        10 * 60 * 1000,
-                        "Spam mentions - 3 mentions within 4 seconds"
-                    ).catch(() => {});
-                }
-
-                // تنبيه في الخاص
-                await member.send({
-                    content:
-                        `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-                        `تم رصد استخدام المنشن بشكل مزعج.\n` +
-                        `بسبب تكرار المنشن **3 مرات خلال 4 ثواني**، تم إعطاؤك ` +
-                        `**Timeout لمدة 10 دقائق**.`
-                }).catch(() => {});
-
-                return;
-            }
-        }
-
-    } catch (error) {
-        console.error("❌ AutoMod Error:", error);
+      return;
     }
-});
 
-// تنظيف بيانات المنشن كل دقيقة
-setInterval(() => {
-    const now = Date.now();
+    // ==========================================
+    // 🔗 منع روابط Discord
+    // ==========================================
 
-    for (const [userId, timestamps] of mentionTracker.entries()) {
+    if (discordInviteRegex.test(message.content)) {
 
-        const recent = timestamps.filter(
-            time => now - time <= 4000
+      await message.delete().catch(() => {});
+
+      // Timeout لمدة ساعة
+      if (member.moderatable) {
+
+        await member.timeout(
+          60 * 60 * 1000,
+          "إرسال رابط سيرفر Discord ممنوع"
+        ).catch(() => {});
+
+      }
+
+      // تنبيه في الخاص
+      await member.send({
+        content:
+          `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
+          `تم منعك من إرسال روابط سيرفرات Discord.\n` +
+          `تم إعطاؤك **Timeout لمدة ساعة** بسبب إرسال رابط Discord.`
+      }).catch(() => {});
+
+      return;
+    }
+
+    // ==========================================
+    // 🔗 منع جميع الروابط
+    // ==========================================
+
+    if (anyLinkRegex.test(message.content)) {
+
+      await message.delete().catch(() => {});
+
+      await member.send({
+        content:
+          `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
+          `الروابط ممنوعة في هذا السيرفر.`
+      }).catch(() => {});
+
+      return;
+    }
+
+    // ==========================================
+    // 📢 Anti Mention Spam
+    // 3 رسائل فيها منشن خلال 4 ثواني
+    // ==========================================
+
+    const mentionCount =
+      message.mentions.users.size;
+
+    if (mentionCount > 0) {
+
+      const userId = message.author.id;
+      const now = Date.now();
+
+      if (!mentionTracker.has(userId)) {
+        mentionTracker.set(userId, []);
+      }
+
+      const timestamps =
+        mentionTracker.get(userId);
+
+      const recent =
+        timestamps.filter(
+          time => now - time <= 4000
         );
 
-        if (recent.length === 0) {
-            mentionTracker.delete(userId);
-        } else {
-            mentionTracker.set(userId, recent);
+      recent.push(now);
+
+      mentionTracker.set(
+        userId,
+        recent
+      );
+
+      // 3 رسائل منشن خلال 4 ثواني
+      if (recent.length >= 3) {
+
+        mentionTracker.delete(userId);
+
+        await message.delete().catch(() => {});
+
+        // Timeout 10 دقائق
+        if (member.moderatable) {
+
+          await member.timeout(
+            10 * 60 * 1000,
+            "Spam mentions - 3 mentions within 4 seconds"
+          ).catch(() => {});
+
         }
+
+        await member.send({
+          content:
+            `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
+            `تم رصد استخدام المنشن بشكل مزعج.\n` +
+            `بسبب تكرار المنشن **3 مرات خلال 4 ثواني**، ` +
+            `تم إعطاؤك **Timeout لمدة 10 دقائق**.`
+        }).catch(() => {});
+
+        return;
+      }
     }
+
+    // ==========================================
+    // 🔁 منع تكرار نفس الرسالة
+    // ==========================================
+
+    const content =
+      message.content.trim().toLowerCase();
+
+    if (content) {
+
+      const userId = message.author.id;
+
+      if (!repeatedMessages.has(userId)) {
+
+        repeatedMessages.set(userId, {
+          content: content,
+          count: 1,
+          lastMessage: Date.now()
+        });
+
+      } else {
+
+        const data =
+          repeatedMessages.get(userId);
+
+        const now = Date.now();
+
+        // إذا نفس الرسالة خلال 10 ثواني
+        if (
+          data.content === content &&
+          now - data.lastMessage <= 10000
+        ) {
+
+          data.count++;
+          data.lastMessage = now;
+
+          // 4 مرات
+          if (data.count >= 4) {
+
+            repeatedMessages.delete(userId);
+
+            await message.delete().catch(() => {});
+
+            if (member.moderatable) {
+
+              await member.timeout(
+                5 * 60 * 1000,
+                "Repeated messages spam"
+              ).catch(() => {});
+
+            }
+
+            await member.send({
+              content:
+                `⚠️ **تنبيه من سيرفر ${message.guild.name}**\n\n` +
+                `تم رصد تكرار نفس الرسالة بشكل مزعج.\n` +
+                `تم إعطاؤك **Timeout لمدة 5 دقائق**.`
+            }).catch(() => {});
+
+            return;
+          }
+
+        } else {
+
+          repeatedMessages.set(userId, {
+            content: content,
+            count: 1,
+            lastMessage: now
+          });
+
+        }
+      }
+    }
+
+  } catch (error) {
+
+    console.error(
+      "❌ AutoMod Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🧹 تنظيف بيانات المنشن
+// ==========================================
+
+setInterval(() => {
+
+  const now = Date.now();
+
+  for (
+    const [userId, timestamps]
+    of mentionTracker.entries()
+  ) {
+
+    const recent =
+      timestamps.filter(
+        time => now - time <= 4000
+      );
+
+    if (recent.length === 0) {
+
+      mentionTracker.delete(userId);
+
+    } else {
+
+      mentionTracker.set(
+        userId,
+        recent
+      );
+
+    }
+  }
+
+}, 60 * 1000);
+
+// ==========================================
+// 🧹 تنظيف بيانات الرسائل المتكررة
+// ==========================================
+
+setInterval(() => {
+
+  const now = Date.now();
+
+  for (
+    const [userId, data]
+    of repeatedMessages.entries()
+  ) {
+
+    if (now - data.lastMessage > 10000) {
+      repeatedMessages.delete(userId);
+    }
+
+  }
+
 }, 60 * 1000);
 
 console.log("🛡️ AutoMod System Loaded");
+console.log("🔗 Link Protection Loaded");
+console.log("📢 Mention Protection Loaded");
+console.log("🔁 Anti Spam Loaded");
 // ==========================================
-// 🎫 TICKET - +come
-// ==========================================
-
-const TICKET_PREFIX = "🎫・";
-
-client.on("messageCreate", async (message) => {
-    try {
-        if (!message.guild || message.author.bot) return;
-
-        if (message.content.trim().toLowerCase() !== "+come") return;
-
-        const channel = message.channel;
-
-        // ==========================================
-        // 🔎 التأكد إن القناة تكت
-        // ==========================================
-
-        if (!channel.name.startsWith(TICKET_PREFIX)) {
-            return message.reply("❌ الأمر هذا يشتغل داخل التكتات فقط.");
-        }
-
-        // ==========================================
-        // 👮 التأكد من صلاحية الموظف
-        // ==========================================
-
-        if (!message.member.permissions.has("ManageChannels")) {
-            return message.reply("❌ ما عندكش صلاحية تستعمل الأمر هذا.");
-        }
-
-        // ==========================================
-        // 👤 البحث عن صاحب التكت
-        // ==========================================
-
-        let owner = null;
-
-        for (const overwrite of channel.permissionOverwrites.cache.values()) {
-
-            // لازم يكون Permission خاص بعضو
-            if (overwrite.type !== 1) continue;
-
-            // لازم عنده ViewChannel
-            if (!overwrite.allow.has("ViewChannel")) continue;
-
-            const member = await message.guild.members
-                .fetch(overwrite.id)
-                .catch(() => null);
-
-            if (!member) continue;
-
-            // ❌ تجاهل البوتات
-            if (member.user.bot) continue;
-
-            // ❌ تجاهل الإدارة
-            if (hasAdminRole(member)) continue;
-
-            // ❌ تجاهل الدعم
-            if (hasSupportRole(member)) continue;
-
-            // هذا المفروض يكون صاحب التكت
-            owner = member;
-            break;
-        }
-
-        // ==========================================
-        // ❌ ما لقيناش صاحب التكت
-        // ==========================================
-
-        if (!owner) {
-            return message.reply(
-                "❌ ما قدرتش نحدد صاحب التكت."
-            );
-        }
-
-        // ==========================================
-        // 📢 الرسالة داخل التكت
-        // ==========================================
-
-        await channel.send({
-            content:
-                `📢 **${owner}**\n` +
-                `الدعم محتاج ردك في التكت، يرجى الرجوع للتكت.`
-        });
-
-        // ==========================================
-        // 📩 الخاص مباشرة
-// ==========================================
-// 🎫 TICKET - +come
+// 🎫 الجزء 4 — نظام التكت كامل
 // ==========================================
 
-const TICKET_PREFIX = "🎫・";
+// ==========================================
+// 📌 التحقق من أن الروم تكت
+// ==========================================
 
-client.on("messageCreate", async (message) => {
-    try {
-        if (!message.guild || message.author.bot) return;
+function isTicketChannel(channel) {
+  return (
+    channel &&
+    channel.isTextBased() &&
+    channel.name.startsWith(TICKET_PREFIX)
+  );
+}
 
-        if (message.content.trim().toLowerCase() !== "+come") return;
+// ==========================================
+// 👤 الحصول على صاحب التكت
+// ==========================================
 
-        const channel = message.channel;
+async function getTicketOwner(channel) {
 
-        // ==========================================
-        // 🔎 التأكد إن القناة تكت
-        // ==========================================
+  try {
 
-        if (!channel.name.startsWith(TICKET_PREFIX)) {
-            return message.reply("❌ الأمر هذا يشتغل داخل التكتات فقط.");
-        }
+    // البحث في صلاحيات الروم
+    for (
+      const overwrite
+      of channel.permissionOverwrites.cache.values()
+    ) {
 
-        // ==========================================
-        // 👮 التأكد من صلاحية الموظف
-        // ==========================================
+      if (overwrite.type !== 1) continue;
 
-        if (!message.member.permissions.has("ManageChannels")) {
-            return message.reply("❌ ما عندكش صلاحية تستعمل الأمر هذا.");
-        }
+      if (!overwrite.allow.has("ViewChannel")) continue;
 
-        // ==========================================
-        // 🔎 البحث عن رسالة Wick
-        // ==========================================
+      const member =
+        await channel.guild.members
+          .fetch(overwrite.id)
+          .catch(() => null);
 
-        const messages = await channel.messages.fetch({
-            limit: 50
-        });
+      if (!member) continue;
 
-        let ownerId = null;
+      if (member.user.bot) continue;
 
-        for (const msg of messages.values()) {
+      if (hasAdminRole(member)) continue;
 
-            // نشوف الـEmbeds
-            for (const embed of msg.embeds) {
+      if (hasSupportRole(member)) continue;
 
-                if (!embed.fields) continue;
-
-                for (const field of embed.fields) {
-
-                    // نبحث عن خانة مالك التذكرة
-                    if (
-                        field.name &&
-                        field.name.includes("مالك التذكرة")
-                    ) {
-
-                        const match = field.value.match(
-                            /<@!?(\d{17,20})>/
-                        );
-
-                        if (match) {
-                            ownerId = match[1];
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (ownerId) break;
-        }
-
-        // ==========================================
-        // ❌ ما لقيناش صاحب التكت
-        // ==========================================
-
-        if (!ownerId) {
-            return message.reply(
-                "❌ ما قدرتش نحدد صاحب التكت من بيانات التكت."
-            );
-        }
-
-        // ==========================================
-        // 👤 جلب صاحب التكت
-        // ==========================================
-
-        const owner = await message.guild.members
-            .fetch(ownerId)
-            .catch(() => null);
-
-        if (!owner) {
-            return message.reply(
-                "❌ صاحب التكت مش موجود في السيرفر."
-            );
-        }
-
-        // ==========================================
-        // 📢 الرسالة داخل التكت
-        // ==========================================
-
-        await channel.send({
-            content:
-                `📢 **${owner}**\n` +
-                `الدعم محتاج ردك في التكت، يرجى الرجوع للتكت.`
-        });
-
-        // ==========================================
-        // 📩 رسالة الخاص مباشرة
-        // ==========================================
-
-        await owner.send({
-            content:
-                `🎫 **تنبيه من سيرفر ${message.guild.name}**\n\n` +
-                `الدعم محتاج ردك في التكت.\n` +
-                `📌 التكت: **${channel.name}**\n\n` +
-                `يرجى الرجوع للتكت والرد على الدعم.`
-        }).catch(() => {});
-
-        // ❌ لا توجد رسالة تأكيد
-
-    } catch (error) {
-        console.error("❌ Ticket Come Error:", error);
+      return member;
     }
+
+    // محاولة البحث في رسائل Wick
+    const messages =
+      await channel.messages.fetch({
+        limit: 50
+      }).catch(() => null);
+
+    if (messages) {
+
+      for (const msg of messages.values()) {
+
+        for (const embed of msg.embeds) {
+
+          if (!embed.fields) continue;
+
+          for (const field of embed.fields) {
+
+            if (
+              field.name &&
+              field.name.includes("مالك التذكرة")
+            ) {
+
+              const match =
+                field.value.match(
+                  /<@!?(\d{17,20})>/
+                );
+
+              if (match) {
+
+                return await channel.guild.members
+                  .fetch(match[1])
+                  .catch(() => null);
+
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+
+  } catch (error) {
+
+    console.error(
+      "❌ Ticket Owner Error:",
+      error
+    );
+
+    return null;
+  }
+}
+
+// ==========================================
+// 🎫 +come
+// ==========================================
+
+client.on("messageCreate", async (message) => {
+
+  try {
+
+    if (!message.guild || message.author.bot) return;
+
+    const command =
+      message.content.trim().toLowerCase();
+
+    if (command !== "+come") return;
+
+    const channel = message.channel;
+
+    if (!isTicketChannel(channel)) {
+
+      return message.reply(
+        "❌ الأمر هذا يشتغل داخل التكتات فقط."
+      );
+
+    }
+
+    if (
+      !message.member.permissions.has(
+        "ManageChannels"
+      )
+    ) {
+
+      return message.reply(
+        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+      );
+
+    }
+
+    const owner =
+      await getTicketOwner(channel);
+
+    if (!owner) {
+
+      return message.reply(
+        "❌ ما قدرتش نحدد صاحب التكت."
+      );
+
+    }
+
+    await channel.send({
+      content:
+        `📢 **${owner}**\n` +
+        `الدعم محتاج ردك في التكت، يرجى الرجوع للتكت.`
+    });
+
+    await owner.send({
+      content:
+        `📢 **تنبيه من سيرفر ${message.guild.name}**\n\n` +
+        `الدعم محتاج ردك في التكت:\n` +
+        `${channel}`
+    }).catch(() => {});
+
+  } catch (error) {
+
+    console.error(
+      "❌ +come Error:",
+      error
+    );
+
+  }
+
 });
 
-console.log("🎫 Ticket Come Loaded");
 // ==========================================
-// 🎫 TICKET COMMANDS
-// +claim / +add / +remove / +rename
+// 🎫 +claim
 // ==========================================
 
 client.on("messageCreate", async (message) => {
-    try {
-        if (!message.guild || message.author.bot) return;
 
-        const channel = message.channel;
-        const content = message.content.trim();
+  try {
 
-        // ==========================================
-        // 🔎 التأكد إن القناة تكت
-        // ==========================================
+    if (!message.guild || message.author.bot) return;
 
-        if (!channel.name.startsWith(TICKET_PREFIX)) return;
+    if (
+      message.content.trim().toLowerCase() !==
+      "+claim"
+    ) return;
 
-        // ==========================================
-        // 👮 صلاحية موظف التكت
-        // ==========================================
+    const channel = message.channel;
 
-        if (!message.member.permissions.has("ManageChannels")) {
-            return message.reply("❌ ما عندكش صلاحية تستعمل أوامر التكت.");
-        }
+    if (!isTicketChannel(channel)) {
 
-        // ==========================================
-        // 🎯 +CLAIM
-        // ==========================================
+      return message.reply(
+        "❌ الأمر هذا يشتغل داخل التكتات فقط."
+      );
 
-        if (content.toLowerCase() === "+claim") {
-
-            // نشوف هل التكت مستلم من قبل
-            if (channel.topic && channel.topic.startsWith("claimed:")) {
-
-                const claimedId = channel.topic.split(":")[1];
-
-                const claimedMember = await message.guild.members
-                    .fetch(claimedId)
-                    .catch(() => null);
-
-                if (claimedMember) {
-                    return message.reply(
-                        `❌ التكت هذا مستلمه بالفعل ${claimedMember}.`
-                    );
-                }
-            }
-
-            // تسجيل الموظف المستلم في Topic
-            await channel.setTopic(
-                `claimed:${message.author.id}`,
-                `Ticket claimed by ${message.author.tag}`
-            ).catch(() => {});
-
-            await channel.send(
-                `🎫 **تم استلام التكت بواسطة ${message.author}.**\n` +
-                `📌 الموظف المسؤول عن التكت الآن هو ${message.author}.`
-            );
-
-            return;
-        }
-
-        // ==========================================
-        // ➕ +ADD @USER
-        // ==========================================
-
-        if (content.toLowerCase().startsWith("+add ")) {
-
-            const user = message.mentions.members.first();
-
-            if (!user) {
-                return message.reply(
-                    "❌ لازم تعمل منشن للشخص.\nمثال: `+add @user`"
-                );
-            }
-
-            // إضافة صلاحية مشاهدة وكتابة
-            await channel.permissionOverwrites.edit(user.id, {
-                ViewChannel: true,
-                SendMessages: true,
-                ReadMessageHistory: true
-            }).catch(() => {});
-
-            await channel.send(
-                `✅ تم إضافة ${user} إلى التكت بواسطة ${message.author}.`
-            );
-
-            return;
-        }
-
-        // ==========================================
-        // ➖ +REMOVE @USER
-        // ==========================================
-
-        if (content.toLowerCase().startsWith("+remove ")) {
-
-            const user = message.mentions.members.first();
-
-            if (!user) {
-                return message.reply(
-                    "❌ لازم تعمل منشن للشخص.\nمثال: `+remove @user`"
-                );
-            }
-
-            // منع إزالة البوت أو صاحب التكت بالخطأ
-            if (user.id === client.user.id) {
-                return message.reply("❌ ما تقدرش تزيل البوت من التكت.");
-            }
-
-            await channel.permissionOverwrites.delete(
-                user.id,
-                `Removed from ticket by ${message.author.tag}`
-            ).catch(() => {});
-
-            await channel.send(
-                `✅ تم إزالة ${user} من التكت بواسطة ${message.author}.`
-            );
-
-            return;
-        }
-
-        // ==========================================
-        // ✏️ +RENAME
-        // ==========================================
-
-        if (content.toLowerCase().startsWith("+rename ")) {
-
-            const newName = content
-                .slice("+rename ".length)
-                .trim();
-
-            if (!newName) {
-                return message.reply(
-                    "❌ اكتب الاسم الجديد.\nمثال: `+rename مشكلة-الحساب`"
-                );
-            }
-
-            // تنظيف الاسم
-            const cleanName = newName
-                .toLowerCase()
-                .replace(/\s+/g, "-")
-                .replace(/[^a-z0-9\u0600-\u06FF\-_]/g, "")
-                .slice(0, 80);
-
-            if (!cleanName) {
-                return message.reply("❌ الاسم غير صالح.");
-            }
-
-            const finalName = `🎫・${cleanName}`;
-
-            await channel.setName(
-                finalName,
-                `Ticket renamed by ${message.author.tag}`
-            );
-
-            await channel.send(
-                `✏️ تم تغيير اسم التكت إلى **${finalName}** بواسطة ${message.author}.`
-            );
-
-            return;
-        }
-
-    } catch (error) {
-        console.error("❌ Ticket Commands Error:", error);
     }
+
+    if (!hasSupportRole(message.member)) {
+
+      return message.reply(
+        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+      );
+
+    }
+
+    await channel.send(
+      `🎫 **تم استلام التكت**\n\n` +
+      `👤 المسؤول: ${message.author}\n` +
+      `📌 سيتم متابعة طلبك من قبلي.`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ +claim Error:",
+      error
+    );
+
+  }
+
 });
 
-console.log("🎫 Ticket Commands Loaded");
 // ==========================================
-// 🎫 TICKET - +close
+// 🎫 +add @user
 // ==========================================
 
 client.on("messageCreate", async (message) => {
-    try {
-        if (!message.guild || message.author.bot) return;
 
-        // الأمر
-        if (message.content.trim().toLowerCase() !== "+close") return;
+  try {
 
-        const channel = message.channel;
+    if (!message.guild || message.author.bot) return;
 
-        // ==========================================
-        // 🔎 التأكد إن القناة تكت
-        // ==========================================
+    const args =
+      message.content.trim().split(/\s+/);
 
-        if (!channel.name.startsWith(TICKET_PREFIX)) {
-            return message.reply("❌ الأمر هذا يشتغل داخل التكتات فقط.");
-        }
+    if (
+      args[0].toLowerCase() !== "+add"
+    ) return;
 
-        // ==========================================
-        // 👮 التأكد من صلاحية الموظف
-        // ==========================================
+    const channel = message.channel;
 
-        if (!message.member.permissions.has("ManageChannels")) {
-            return message.reply("❌ ما عندكش صلاحية تسكر التكت.");
-        }
+    if (!isTicketChannel(channel)) {
 
-        // ==========================================
-        // 🔒 قفل التكت
-        // ==========================================
+      return message.reply(
+        "❌ الأمر هذا يشتغل داخل التكتات فقط."
+      );
 
-        await message.reply("🔒 جاري إغلاق التكت...");
-
-        // منع الأعضاء العاديين من الكتابة
-        await channel.permissionOverwrites.edit(
-            message.guild.roles.everyone,
-            {
-                SendMessages: false
-            }
-        ).catch(() => {});
-
-        // ==========================================
-        // ⏳ انتظار ثم حذف التكت
-        // ==========================================
-
-        await channel.send(
-            `🔒 **تم إغلاق التكت بواسطة ${message.author}.**\n` +
-            `🗑️ سيتم حذف التكت بعد **5 ثواني**.`
-        );
-
-        setTimeout(async () => {
-            await channel.delete(
-                "Ticket closed"
-            ).catch(() => {});
-        }, 5000);
-
-    } catch (error) {
-        console.error("❌ Ticket Close Error:", error);
     }
+
+    if (!hasSupportRole(message.member)) {
+
+      return message.reply(
+        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+      );
+
+    }
+
+    const target =
+      message.mentions.members.first();
+
+    if (!target) {
+
+      return message.reply(
+        "❌ منشن الشخص اللي تبي تضيفه."
+      );
+
+    }
+
+    await channel.permissionOverwrites.edit(
+      target.id,
+      {
+        ViewChannel: true,
+        SendMessages: true,
+        ReadMessageHistory: true
+      }
+    );
+
+    await channel.send(
+      `✅ تم إضافة ${target} إلى التكت بواسطة ${message.author}.`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ +add Error:",
+      error
+    );
+
+  }
+
 });
 
-console.log("🔒 Ticket Close Loaded");
+// ==========================================
+// 🎫 +remove @user
+// ==========================================
+
+client.on("messageCreate", async (message) => {
+
+  try {
+
+    if (!message.guild || message.author.bot) return;
+
+    const args =
+      message.content.trim().split(/\s+/);
+
+    if (
+      args[0].toLowerCase() !== "+remove"
+    ) return;
+
+    const channel = message.channel;
+
+    if (!isTicketChannel(channel)) {
+
+      return message.reply(
+        "❌ الأمر هذا يشتغل داخل التكتات فقط."
+      );
+
+    }
+
+    if (!hasSupportRole(message.member)) {
+
+      return message.reply(
+        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+      );
+
+    }
+
+    const target =
+      message.mentions.members.first();
+
+    if (!target) {
+
+      return message.reply(
+        "❌ منشن الشخص اللي تبي تحذفه من التكت."
+      );
+
+    }
+
+    await channel.permissionOverwrites.delete(
+      target.id
+    );
+
+    await channel.send(
+      `✅ تم إزالة ${target} من التكت بواسطة ${message.author}.`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ +remove Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🎫 +rename الاسم
+// ==========================================
+
+client.on("messageCreate", async (message) => {
+
+  try {
+
+    if (!message.guild || message.author.bot) return;
+
+    const args =
+      message.content.trim().split(/\s+/);
+
+    if (
+      args[0].toLowerCase() !== "+rename"
+    ) return;
+
+    const channel = message.channel;
+
+    if (!isTicketChannel(channel)) {
+
+      return message.reply(
+        "❌ الأمر هذا يشتغل داخل التكتات فقط."
+      );
+
+    }
+
+    if (!hasSupportRole(message.member)) {
+
+      return message.reply(
+        "❌ ما عندكش صلاحية تستعمل الأمر هذا."
+      );
+
+    }
+
+    const newName =
+      args.slice(1).join("-");
+
+    if (!newName) {
+
+      return message.reply(
+        "❌ اكتب الاسم الجديد.\nمثال: `+rename مشكلة-شراء`"
+      );
+
+    }
+
+    await channel.setName(
+      `${TICKET_PREFIX}${newName}`
+    );
+
+    await channel.send(
+      `✏️ تم تغيير اسم التكت إلى **${TICKET_PREFIX}${newName}** بواسطة ${message.author}.`
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ +rename Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🎫 +close
+// ==========================================
+
+client.on("messageCreate", async (message) => {
+
+  try {
+
+    if (!message.guild || message.author.bot) return;
+
+    if (
+      message.content.trim().toLowerCase() !==
+      "+close"
+    ) return;
+
+    const channel = message.channel;
+
+    if (!isTicketChannel(channel)) {
+
+      return message.reply(
+        "❌ الأمر هذا يشتغل داخل التكتات فقط."
+      );
+
+    }
+
+    if (!hasSupportRole(message.member)) {
+
+      return message.reply(
+        "❌ ما عندكش صلاحية تسكر التكت."
+      );
+
+    }
+
+    await message.reply(
+      "🔒 جاري إغلاق التكت..."
+    );
+
+    await channel.permissionOverwrites.edit(
+      message.guild.roles.everyone,
+      {
+        SendMessages: false
+      }
+    ).catch(() => {});
+
+    await channel.send(
+      `🔒 **تم إغلاق التكت بواسطة ${message.author}.**\n` +
+      `🗑️ سيتم حذف التكت بعد **5 ثواني**.`
+    );
+
+    setTimeout(async () => {
+
+      await channel.delete(
+        "Ticket closed"
+      ).catch(() => {});
+
+    }, 5000);
+
+  } catch (error) {
+
+    console.error(
+      "❌ +close Error:",
+      error
+    );
+
+  }
+
+});
+
+// ==========================================
+// 🚀 تشغيل البوت
+// ==========================================
+
 client.login(TOKEN);
+
+console.log("🎫 Ticket System Loaded");
+console.log("🚀 Bot Starting...");

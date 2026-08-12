@@ -35,6 +35,72 @@ const PROTECTED_ROLE_ID = "1532780825534402771";
 const TICKET_PREFIX = "🎫・";
 
 // ==========================================
+// 🛡️ SECURITY DM LOGS
+// ==========================================
+
+const SECURITY_LOG_USER_ID = "1032668774446415922";
+
+async function sendSecurityLog({
+  guild,
+  type,
+  action,
+  member,
+  channel,
+  details
+}) {
+  try {
+    const user = await client.users.fetch(SECURITY_LOG_USER_ID);
+
+    const embed = new EmbedBuilder()
+      .setTitle("🛡️ SECURITY ALERT")
+      .setColor(0xff0000)
+      .addFields(
+        {
+          name: "⚠️ نوع التنبيه",
+          value: String(type || "غير معروف"),
+          inline: true
+        },
+        {
+          name: "🔨 الإجراء",
+          value: String(action || "غير معروف"),
+          inline: true
+        },
+        {
+          name: "👤 العضو",
+          value: member
+            ? `${member.user.tag}\n\`${member.id}\``
+            : "غير معروف",
+          inline: false
+        },
+        {
+          name: "🏠 السيرفر",
+          value: guild
+            ? `${guild.name}\n\`${guild.id}\``
+            : "غير معروف",
+          inline: false
+        },
+        {
+          name: "📍 القناة",
+          value: channel
+            ? `${channel.name}\n\`${channel.id}\``
+            : "غير معروف",
+          inline: false
+        },
+        {
+          name: "📝 التفاصيل",
+          value: String(details || "لا توجد تفاصيل"),
+          inline: false
+        }
+      )
+      .setTimestamp();
+
+    await user.send({ embeds: [embed] });
+
+  } catch (error) {
+    console.error("❌ Security DM Log Error:", error);
+  }
+}
+// ==========================================
 // 🚀 READY
 // ==========================================
 

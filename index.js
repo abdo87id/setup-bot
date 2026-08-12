@@ -1309,42 +1309,91 @@ client.on("channelDelete", async (channel) => {
       entry.executor;
 
     if (!user || user.bot) return;
+// ==========================================
+// 🛡️ Anti-Nuke - حماية إنشاء وحذف الرومات
+// ==========================================
 
-    const member =
-      await channel.guild.members
-        .fetch(user.id)
-        .catch(() => null);
+client.on("channelCreate", async (channel) => {
+  try {
+    if (!channel.guild) return;
+
+    const audit = await channel.guild.fetchAuditLogs({
+      type: 10,
+      limit: 1
+    }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry = audit.entries.first();
+    if (!entry) return;
+
+    if (Date.now() - entry.createdTimestamp > 5000) return;
+
+    const user = entry.executor;
+    if (!user || user.bot) return;
+
+    const member = await channel.guild.members
+      .fetch(user.id)
+      .catch(() => null);
 
     if (!member) return;
 
     if (isProtected(member)) return;
 
-    const count =
-      trackAction(
-        channel.guild.id,
-        user.id,
-        "channelDelete"
-      );
-
-    if (count >= ANTI_NUKE_LIMIT) {
-
-      await punishNuker(
-        channel.guild,
-        user.id,
-        "حذف رومات بشكل تخريبي"
-      );
-
-    }
+    await punishNuker(
+      channel.guild,
+      user.id,
+      "إنشاء روم بشكل تخريبي"
+    );
 
   } catch (error) {
+    console.log(
+      "❌ Channel Create Protection Error:",
+      error
+    );
+  }
+});
 
+
+client.on("channelDelete", async (channel) => {
+  try {
+    if (!channel.guild) return;
+
+    const audit = await channel.guild.fetchAuditLogs({
+      type: 12,
+      limit: 1
+    }).catch(() => null);
+
+    if (!audit) return;
+
+    const entry = audit.entries.first();
+    if (!entry) return;
+
+    if (Date.now() - entry.createdTimestamp > 5000) return;
+
+    const user = entry.executor;
+    if (!user || user.bot) return;
+
+    const member = await channel.guild.members
+      .fetch(user.id)
+      .catch(() => null);
+
+    if (!member) return;
+
+    if (isProtected(member)) return;
+
+    await punishNuker(
+      channel.guild,
+      user.id,
+      "حذف روم بشكل تخريبي"
+    );
+
+  } catch (error) {
     console.log(
       "❌ Channel Delete Protection Error:",
       error
     );
-
   }
-
 });
 
 // ==========================================

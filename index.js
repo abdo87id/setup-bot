@@ -1397,141 +1397,91 @@ client.on("channelDelete", async (channel) => {
 });
 
 // ==========================================
-// 🏷️ إنشاء / حذف / تعديل الرتب
+// ==========================================
+// 🏷️ Anti-Nuke - حماية إنشاء وحذف الرتب
 // ==========================================
 
 client.on("roleCreate", async (role) => {
-
   try {
+    const guild = role.guild;
 
-    const guild =
-      role.guild;
-
-    const audit =
-      await guild.fetchAuditLogs({
-        type: 30,
-        limit: 1
-      }).catch(() => null);
+    const audit = await guild.fetchAuditLogs({
+      type: 30,
+      limit: 1
+    }).catch(() => null);
 
     if (!audit) return;
 
-    const entry =
-      audit.entries.first();
-
+    const entry = audit.entries.first();
     if (!entry) return;
 
-    if (
-      Date.now() - entry.createdTimestamp >
-      5000
-    ) return;
+    if (Date.now() - entry.createdTimestamp > 5000) return;
 
-    const user =
-      entry.executor;
-
+    const user = entry.executor;
     if (!user || user.bot) return;
 
-    const member =
-      await guild.members
-        .fetch(user.id)
-        .catch(() => null);
+    const member = await guild.members
+      .fetch(user.id)
+      .catch(() => null);
 
     if (!member) return;
 
     if (isProtected(member)) return;
 
-    const count =
-      trackAction(
-        guild.id,
-        user.id,
-        "roleCreate"
-      );
-
-    if (count >= ANTI_NUKE_LIMIT) {
-
-      await punishNuker(
-        guild,
-        user.id,
-        "إنشاء رتب بشكل تخريبي"
-      );
-
-    }
+    await punishNuker(
+      guild,
+      user.id,
+      "إنشاء رتبة بشكل تخريبي"
+    );
 
   } catch (error) {
-
     console.log(
       "❌ Role Create Protection Error:",
       error
     );
-
   }
-
 });
 
+
 client.on("roleDelete", async (role) => {
-
   try {
+    const guild = role.guild;
 
-    const guild =
-      role.guild;
-
-    const audit =
-      await guild.fetchAuditLogs({
-        type: 32,
-        limit: 1
-      }).catch(() => null);
+    const audit = await guild.fetchAuditLogs({
+      type: 32,
+      limit: 1
+    }).catch(() => null);
 
     if (!audit) return;
 
-    const entry =
-      audit.entries.first();
-
+    const entry = audit.entries.first();
     if (!entry) return;
 
-    if (
-      Date.now() - entry.createdTimestamp >
-      5000
-    ) return;
+    if (Date.now() - entry.createdTimestamp > 5000) return;
 
-    const user =
-      entry.executor;
-
+    const user = entry.executor;
     if (!user || user.bot) return;
 
-    const member =
-      await guild.members
-        .fetch(user.id)
-        .catch(() => null);
+    const member = await guild.members
+      .fetch(user.id)
+      .catch(() => null);
 
     if (!member) return;
 
     if (isProtected(member)) return;
 
-    const count =
-      trackAction(
-        guild.id,
-        user.id,
-        "roleDelete"
-      );
-
-    if (count >= ANTI_NUKE_LIMIT) {
-
-      await punishNuker(
-        guild,
-        user.id,
-        "حذف رتب بشكل تخريبي"
-      );
-
-    }
+    await punishNuker(
+      guild,
+      user.id,
+      "حذف رتبة بشكل تخريبي"
+    );
 
   } catch (error) {
-
     console.log(
       "❌ Role Delete Protection Error:",
       error
     );
-
   }
-
 });
 
 // ==========================================

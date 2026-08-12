@@ -1380,259 +1380,145 @@ client.on("roleDelete", async (role) => {
 });
 
 // ==========================================
-// 🚨 دخول بوت جديد
+// 🛡️ Anti-Nuke - حماية دخول البوتات والحظر والطرد
 // ==========================================
 
+// 🚨 دخول بوت جديد
 client.on("guildMemberAdd", async (member) => {
-
   try {
-
     if (!member.user.bot) return;
 
-    const guild =
-      member.guild;
+    const guild = member.guild;
 
-    const audit =
-      await guild.fetchAuditLogs({
-        type: 28,
-        limit: 1
-      }).catch(() => null);
+    const audit = await guild.fetchAuditLogs({
+      type: 28,
+      limit: 1
+    }).catch(() => null);
 
     if (!audit) return;
 
-    const entry =
-      audit.entries.first();
-
+    const entry = audit.entries.first();
     if (!entry) return;
 
-    if (
-      Date.now() - entry.createdTimestamp >
-      10000
-    ) return;
+    if (Date.now() - entry.createdTimestamp > 10000) return;
 
-    const executor =
-      entry.executor;
+    const executor = entry.executor;
+    if (!executor || executor.bot) return;
 
-    if (!executor) return;
-
-    const staff =
-      await guild.members
-        .fetch(executor.id)
-        .catch(() => null);
+    const staff = await guild.members
+      .fetch(executor.id)
+      .catch(() => null);
 
     if (!staff) return;
-
     if (isProtected(staff)) return;
 
-    const count =
-      trackAction(
-        guild.id,
-        executor.id,
-        "botAdd"
-      );
+    await member.kick(
+      "Anti-Nuke: إضافة بوت بشكل مشبوه"
+    ).catch(() => {});
 
-    if (count >= ANTI_NUKE_LIMIT) {
-
-      await member.kick(
-        "Anti-Nuke: إضافة بوتات بشكل مشبوه"
-      ).catch(() => {});
-
-      await punishNuker(
-        guild,
-        executor.id,
-        "إضافة بوتات بشكل مشبوه"
-      );
-
-    }
+    await punishNuker(
+      guild,
+      executor.id,
+      "إضافة بوت بشكل مشبوه"
+    );
 
   } catch (error) {
-
     console.log(
       "❌ Bot Protection Error:",
       error
     );
-
   }
-
 });
+
 
 // ==========================================
 // 🔨 حظر عضو
 // ==========================================
 
 client.on("guildBanAdd", async (ban) => {
-
   try {
+    const guild = ban.guild;
 
-    const guild =
-      ban.guild;
-
-    const audit =
-      await guild.fetchAuditLogs({
-        type: 22,
-        limit: 1
-      }).catch(() => null);
+    const audit = await guild.fetchAuditLogs({
+      type: 22,
+      limit: 1
+    }).catch(() => null);
 
     if (!audit) return;
 
-    const entry =
-      audit.entries.first();
-
+    const entry = audit.entries.first();
     if (!entry) return;
 
-    if (
-      Date.now() - entry.createdTimestamp >
-      5000
-    ) return;
+    if (Date.now() - entry.createdTimestamp > 5000) return;
 
-    const user =
-      entry.executor;
-
+    const user = entry.executor;
     if (!user || user.bot) return;
 
-    const member =
-      await guild.members
-        .fetch(user.id)
-        .catch(() => null);
+    const member = await guild.members
+      .fetch(user.id)
+      .catch(() => null);
 
     if (!member) return;
-
     if (isProtected(member)) return;
 
-    const count =
-      trackAction(
-        guild.id,
-        user.id,
-        "ban"
-      );
-
-    if (count >= ANTI_NUKE_LIMIT) {
-
-      await punishNuker(
-        guild,
-        user.id,
-        "حظر أعضاء بشكل تخريبي"
-      );
-
-    }
+    await punishNuker(
+      guild,
+      user.id,
+      "حظر أعضاء بشكل تخريبي"
+    );
 
   } catch (error) {
-
     console.log(
       "❌ Ban Protection Error:",
       error
     );
-
   }
-
 });
+
 
 // ==========================================
 // 👢 طرد عضو
 // ==========================================
 
 client.on("guildMemberRemove", async (member) => {
-
   try {
+    const guild = member.guild;
 
-    const guild =
-      member.guild;
-
-    const audit =
-      await guild.fetchAuditLogs({
-        type: 20,
-        limit: 1
-      }).catch(() => null);
+    const audit = await guild.fetchAuditLogs({
+      type: 20,
+      limit: 1
+    }).catch(() => null);
 
     if (!audit) return;
 
-    const entry =
-      audit.entries.first();
-
+    const entry = audit.entries.first();
     if (!entry) return;
 
-    if (
-      Date.now() - entry.createdTimestamp >
-      5000
-    ) return;
+    if (Date.now() - entry.createdTimestamp > 5000) return;
 
-    const user =
-      entry.executor;
-
+    const user = entry.executor;
     if (!user || user.bot) return;
 
-    const staff =
-      await guild.members
-        .fetch(user.id)
-        .catch(() => null);
+    const staff = await guild.members
+      .fetch(user.id)
+      .catch(() => null);
 
     if (!staff) return;
-
     if (isProtected(staff)) return;
 
-    const count =
-      trackAction(
-        guild.id,
-        user.id,
-        "kick"
-      );
-
-    if (count >= ANTI_NUKE_LIMIT) {
-
-      await punishNuker(
-        guild,
-        user.id,
-        "طرد أعضاء بشكل تخريبي"
-      );
-
-    }
+    await punishNuker(
+      guild,
+      user.id,
+      "طرد أعضاء بشكل تخريبي"
+    );
 
   } catch (error) {
-
     console.log(
       "❌ Kick Protection Error:",
       error
     );
-
   }
-
 });
-
-// ==========================================
-// 🧹 تنظيف Anti-Nuke
-// ==========================================
-
-setInterval(() => {
-
-  const now = Date.now();
-
-  for (
-    const [key, timestamps]
-    of antiNukeTracker.entries()
-  ) {
-
-    const recent =
-      timestamps.filter(
-        time =>
-          now - time <= ANTI_NUKE_WINDOW
-      );
-
-    if (recent.length === 0) {
-
-      antiNukeTracker.delete(key);
-
-    } else {
-
-      antiNukeTracker.set(
-        key,
-        recent
-      );
-
-    }
-
-  }
-
-}, 60000);
 
 // ==========================================
 // 🤖 LOGIN

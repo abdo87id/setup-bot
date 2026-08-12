@@ -1212,107 +1212,10 @@ async function punishNuker(guild, userId, reason) {
   }
 }
 // ==========================================
-// 🏠 إنشاء / حذف / تعديل الرومات
+// 🛡️ Anti-Nuke - حماية الرومات والرتب
 // ==========================================
 
-client.on("channelCreate", async (channel) => {
-
-  try {
-
-    if (!channel.guild) return;
-
-    const audit =
-      await channel.guild.fetchAuditLogs({
-        type: 10,
-        limit: 1
-      }).catch(() => null);
-
-    if (!audit) return;
-
-    const entry =
-      audit.entries.first();
-
-    if (!entry) return;
-
-    if (
-      Date.now() - entry.createdTimestamp >
-      5000
-    ) return;
-
-    const user =
-      entry.executor;
-
-    if (!user || user.bot) return;
-
-    const member =
-      await channel.guild.members
-        .fetch(user.id)
-        .catch(() => null);
-
-    if (!member) return;
-
-    if (isProtected(member)) return;
-
-    const count =
-      trackAction(
-        channel.guild.id,
-        user.id,
-        "channelCreate"
-      );
-
-    if (count >= ANTI_NUKE_LIMIT) {
-      
-      await punishNuker(
-        channel.guild,
-        user.id,
-        "إنشاء رومات بشكل تخريبي"
-      );
-
-    }
-
-  } catch (error) {
-
-    console.log(
-      "❌ Channel Create Protection Error:",
-      error
-    );
-
-  }
-
-});
-
-client.on("channelDelete", async (channel) => {
-
-  try {
-
-    if (!channel.guild) return;
-
-    const audit =
-      await channel.guild.fetchAuditLogs({
-        type: 12,
-        limit: 1
-      }).catch(() => null);
-
-    if (!audit) return;
-
-    const entry =
-      audit.entries.first();
-
-    if (!entry) return;
-
-    if (
-      Date.now() - entry.createdTimestamp >
-      5000
-    ) return;
-
-    const user =
-      entry.executor;
-
-    if (!user || user.bot) return;
-// ==========================================
-// 🛡️ Anti-Nuke - حماية إنشاء وحذف الرومات
-// ==========================================
-
+// 🏠 إنشاء روم
 client.on("channelCreate", async (channel) => {
   try {
     if (!channel.guild) return;
@@ -1337,7 +1240,6 @@ client.on("channelCreate", async (channel) => {
       .catch(() => null);
 
     if (!member) return;
-
     if (isProtected(member)) return;
 
     await punishNuker(
@@ -1354,7 +1256,7 @@ client.on("channelCreate", async (channel) => {
   }
 });
 
-
+// 🗑️ حذف روم
 client.on("channelDelete", async (channel) => {
   try {
     if (!channel.guild) return;
@@ -1379,7 +1281,6 @@ client.on("channelDelete", async (channel) => {
       .catch(() => null);
 
     if (!member) return;
-
     if (isProtected(member)) return;
 
     await punishNuker(
@@ -1396,11 +1297,7 @@ client.on("channelDelete", async (channel) => {
   }
 });
 
-// ==========================================
-// ==========================================
-// 🏷️ Anti-Nuke - حماية إنشاء وحذف الرتب
-// ==========================================
-
+// 🏷️ إنشاء رتبة
 client.on("roleCreate", async (role) => {
   try {
     const guild = role.guild;
@@ -1425,7 +1322,6 @@ client.on("roleCreate", async (role) => {
       .catch(() => null);
 
     if (!member) return;
-
     if (isProtected(member)) return;
 
     await punishNuker(
@@ -1442,7 +1338,7 @@ client.on("roleCreate", async (role) => {
   }
 });
 
-
+// 🗑️ حذف رتبة
 client.on("roleDelete", async (role) => {
   try {
     const guild = role.guild;
@@ -1467,7 +1363,6 @@ client.on("roleDelete", async (role) => {
       .catch(() => null);
 
     if (!member) return;
-
     if (isProtected(member)) return;
 
     await punishNuker(

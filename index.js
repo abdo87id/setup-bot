@@ -1174,87 +1174,43 @@ client.on("messageCreate", async (message) => {
 });
 
 // ==========================================
-// 🛡️ ANTI-NUKE
-// حماية الرومات والرتب والصلاحيات والباند والكِيك
+// 🛡️ Anti-Nuke Punishment
 // ==========================================
 
-const antiNukeTracker = new Map();
-
-const ANTI_NUKE_WINDOW = 10000;
-const ANTI_NUKE_LIMIT = 3;
-
-function trackAction(guildId, userId, action) {
-
-  const key =
-    `${guildId}:${userId}:${action}`;
-
-  const now = Date.now();
-
-  if (!antiNukeTracker.has(key)) {
-    antiNukeTracker.set(key, []);
-  }
-
-  const list =
-    antiNukeTracker.get(key);
-
-  const recent =
-    list.filter(
-      time => now - time <= ANTI_NUKE_WINDOW
-    );
-
-  recent.push(now);
-
-  antiNukeTracker.set(
-    key,
-    recent
-  );
-
-  return recent.length;
-}
-
 async function punishNuker(guild, userId, reason) {
-
   try {
-
-    const member =
-      await guild.members
-        .fetch(userId)
-        .catch(() => null);
+    const member = await guild.members
+      .fetch(userId)
+      .catch(() => null);
 
     if (!member) return;
 
     // الرتب المحمية لا يتم معاقبتها
     if (isProtected(member)) return;
 
+    // محاولة حظر الشخص أولاً
     if (member.bannable) {
-
       await member.ban({
-        reason:
-          `Anti-Nuke: ${reason}`
+        reason: `Anti-Nuke: ${reason}`
       }).catch(() => {});
 
       return;
     }
 
+    // إذا ما يقدرش البوت يحظره، يحاول يطرده
     if (member.kickable) {
-
       await member.kick(
         `Anti-Nuke: ${reason}`
       ).catch(() => {});
-
     }
 
   } catch (error) {
-
     console.log(
       "❌ Anti-Nuke Punishment Error:",
       error
     );
-
   }
-
 }
-
 // ==========================================
 // 🏠 إنشاء / حذف / تعديل الرومات
 // ==========================================

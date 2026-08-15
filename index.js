@@ -1174,7 +1174,7 @@ client.on("messageCreate", async (message) => {
 });
 
 // ==========================================
-// 🛡️ Anti-Nuke Punishment
+// 🛡️ Anti-Nuke Punishment + DM Alert
 // ==========================================
 
 async function punishNuker(guild, userId, reason) {
@@ -1188,21 +1188,60 @@ async function punishNuker(guild, userId, reason) {
     // الرتب المحمية لا يتم معاقبتها
     if (isProtected(member)) return;
 
-    // محاولة حظر الشخص أولاً
+    let punishment = "لم يتم تنفيذ العقوبة";
+
+    // 🔨 محاولة الحظر
     if (member.bannable) {
-      await member.ban({
+      const banned = await member.ban({
         reason: `Anti-Nuke: ${reason}`
-      }).catch(() => {});
+      }).then(() => true).catch(() => false);
 
-      return;
+      if (banned) {
+        punishment = "🔨 تم حظر المخرب";
+      }
     }
 
-    // إذا ما يقدرش البوت يحظره، يحاول يطرده
-    if (member.kickable) {
-      await member.kick(
+    // 👢 إذا تعذر الحظر، محاولة الطرد
+    if (
+      punishment === "لم يتم تنفيذ العقوبة" &&
+      member.kickable
+    ) {
+      const kicked = await member.kick(
         `Anti-Nuke: ${reason}`
-      ).catch(() => {});
+      ).then(() => true).catch(() => false);
+
+      if (kicked) {
+        punishment = "👢 تم طرد المخرب";
+      }
     }
+
+    // 📩 إرسال تقرير للمالك
+    const owner = await client.users
+      .fetch("1032668774446415922")
+      .catch(() => null);
+
+    if (!owner) return;
+
+    const message =
+`🛡️ Anti-Nuke Alert
+
+🏠 السيرفر:
+${guild.name}
+
+👤 المخرب:
+${member.user.tag}
+${member.id}
+
+⚠️ العملية:
+${reason}
+
+🔨 العقوبة:
+${punishment}
+
+🕐 الوقت:
+${new Date().toLocaleString("ar-LY")}`;
+
+    await owner.send(message).catch(() => {});
 
   } catch (error) {
     console.log(
